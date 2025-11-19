@@ -1,24 +1,9 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "angular.json",
-      "use": "@vercel/angular"
-    }
+    { "src": "angular.json", "use": "@vercel/angular" }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
-      ]
-    }
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
