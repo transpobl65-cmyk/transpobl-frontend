@@ -1,0 +1,74 @@
+.sidebar {
+  width: 260px;
+  background: radial-gradient(120% 140% at 10% 0%, #101827 0%, #0f172a 70%);
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === LOGO DESDE CSS === */
+.brand {
+  width: 160px;
+  height: 110px;
+  background-image: url('img/logo.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  align-self: center;
+  margin-bottom: 3rem;
+  border-radius: 12px;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.1);
+}
+
+/* === NAVEGACIÓN === */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* <-- MÁS SEPARACIÓN ENTRE BOTONES */
+}
+
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: #e5e7eb;
+  border-radius: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav a:hover {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: #fff;
+  transform: scale(1.03);
+}
+
+.nav a.active {
+  background: linear-gradient(90deg, #f59e0b, #d97706);
+  color: #fff;
+}
+
+.logout {
+  margin-top: 2.5rem; /* 🔸 antes estaba "auto", ahora da más espacio fijo */
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-align: center;
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s ease;
+  display: block;
+  width: 90%;
+  align-self: center;
+}
+
+.logout:hover {
+  background: #d97706;
+  transform: scale(1.03);
+}
+.material-icons {
+  font-size: 22px;
+}

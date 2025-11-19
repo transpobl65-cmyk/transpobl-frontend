@@ -1,0 +1,38 @@
+<aside class="sidebar">
+  <div class="brand"></div>
+
+  <nav class="nav">
+    <!-- MENÚ PARA ADMIN/Gerente -->
+    <ng-container *ngIf="role === 'ADMINISTRADOR' || role === 'GERENTE'">
+      <a routerLink="/dashboard/cuerpo" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="material-icons">dashboard</span> Dashboard
+      </a>
+      <a routerLink="/dashboard/gastos-empresa" routerLinkActive="active">
+        <span class="material-icons">account_balance</span> Gastos
+      </a>
+    <!--   <a routerLink="/dashboard/ingresos" routerLinkActive="active">
+        <span class="material-icons">attach_money</span> Ingresos
+      </a> -->
+      <a routerLink="/dashboard/estado-carros" routerLinkActive="active">
+        <span class="material-icons">local_shipping</span> Estado de carros
+      </a>
+      <a routerLink="/dashboard/solicitudes" routerLinkActive="active">
+        <span class="material-icons">assignment</span> Solicitudes
+      </a>
+      <a routerLink="/dashboard/coordinacion" routerLinkActive="active">
+        <span class="material-icons">groups</span> Coordinación
+      </a>
+
+
+    </ng-container>
+
+    <!-- MENÚ PARA CONDUCTOR -->
+    <ng-container *ngIf="role === 'CONDUCTOR'">
+      <a routerLink="/dashboard/gastos-conductor" routerLinkActive="active">
+        <span class="material-icons">payments</span> Registrar gastos
+      </a>
+    </ng-container>
+  </nav>
+
+  <a class="logout" (click)="cerrarSesion()">Salir</a>
+</aside>

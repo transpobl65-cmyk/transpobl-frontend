@@ -1,0 +1,143 @@
+.card {
+  background: #111827;
+  color: #f3f4f6;
+  margin: 1.5rem auto;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  max-width: 1100px;
+}
+
+.card-head {
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: #f59e0b;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.3rem;
+}
+
+/* 💡 Rejilla 3 columnas */
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.2rem 1rem;
+  align-items: start;
+  justify-content: center;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.full-width {
+  grid-column: span 3;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 0.3rem;
+  color: #f9fafb;
+}
+
+input,
+select,
+textarea {
+  background: #1f2937;
+  color: #f9fafb;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.6rem;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+textarea {
+  resize: none;
+  height: 70px;
+}
+
+/* Botones */
+.button-group {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.btn-guardar {
+  background-color: #16a34a;
+  color: #fff;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-guardar:hover {
+  background-color: #15803d;
+}
+
+.btn-cancelar {
+  background-color: #dc2626;
+  color: #fff;
+  padding: 0.6rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancelar:hover {
+  background-color: #b91c1c;
+}
+
+/* Tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th {
+  color: #f59e0b;
+  border-bottom: 2px solid #374151;
+  padding: 0.6rem;
+  text-align: left;
+}
+
+td {
+  border-bottom: 1px solid #374151;
+  padding: 0.6rem;
+}
+
+/* Total de gastos */
+.total-box {
+  background-color: #1f2937;
+  color: #f59e0b;
+  font-weight: 600;
+  padding: 10px 15px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+.total-box span {
+  color: #22c55e;
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+/* 📱 Responsivo */
+@media (max-width: 900px) {
+  .form-grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+}

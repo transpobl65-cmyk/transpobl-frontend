@@ -1,0 +1,55 @@
+.dashboard-container {
+  color: #e5e7eb;
+  font-family: 'Inter', sans-serif;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+  color: #f59e0b;
+}
+
+.card-header {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem 1.4rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 2rem;
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.6);
+}
+
+.card-head {
+  font-weight: 600;
+  color: #93c5fd;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+  padding-bottom: .5rem;
+}
+
+/* GRID para 8 reportes */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.6rem;
+}
+
+.chart-card {
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1.3rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.6);
+  min-height: 260px;
+}
+
+.chart-card h3 {
+  margin-bottom: 0.9rem;
+  color: #f59e0b;
+  font-size: 1.05rem;
+}
+
+/* Los canvas llenan la tarjeta */
+canvas {
+  width: 100% !important;
+  height: 190px !important;
+}

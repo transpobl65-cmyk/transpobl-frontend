@@ -1,0 +1,124 @@
+.card {
+  background-color: #121826;
+  border-radius: 12px;
+  padding: 20px;
+  color: #fff;
+  margin-top: 15px;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+}
+
+.card-head {
+  font-weight: bold;
+  font-size: 1.3rem;
+  color: #ff9900;
+  margin-bottom: 10px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-weight: 500;
+  display: block;
+  margin-bottom: 5px;
+  color: #bbb;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: none;
+  background-color: #1d2433;
+  color: #fff;
+}
+
+textarea {
+  resize: none;
+  height: 70px;
+}
+
+.button-group {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn-guardar {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-cancelar {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-editar {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.btn-eliminar {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+}
+
+th {
+  color: #ff9900;
+  text-align: left;
+  padding: 8px;
+}
+
+td {
+  padding: 8px;
+  border-top: 1px solid #2b3242;
+}
+
+.paginacion {
+  margin-top: 15px;
+  text-align: center;
+}
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.btn-descargar {
+  background-color: #ff9800;
+  color: #fff;
+  border: none;
+  padding: 5px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-descargar:hover {
+  background-color: #e68900;
+}

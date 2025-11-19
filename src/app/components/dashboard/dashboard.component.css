@@ -1,0 +1,12 @@
+.layout {
+  display: flex;
+  height: 100vh;
+  background-color: #0f172a;
+}
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #0b1222, #101827 45%, #0b1222);
+}

@@ -1,0 +1,115 @@
+<div class="card">
+  <div class="card-head">Registrar Gasto del Conductor</div>
+
+  <!-- 💰 Total visible solo si el usuario tiene gastos -->
+  <div class="total-box" *ngIf="gastos.length > 0">
+    💰 Total gastado por <strong>{{ conductorUsername }}</strong>:
+    <span>S/. {{ totalGastos | number:'1.2-2' }}</span>
+  </div>
+
+  <div class="card-body">
+    <form (ngSubmit)="guardarGasto()">
+      <div class="form-grid-3">
+        
+        <!-- 🟢 Select de Asignación -->
+        <div class="form-group">
+          <label>Asignación *</label>
+          <select id="asignacion" [(ngModel)]="gasto.asignacion" name="asignacion" required>
+            <option [ngValue]="null">Seleccione una asignación</option>
+            <option *ngFor="let a of asignaciones" [ngValue]="a">
+              {{ a.vehiculo?.placa }} - {{ a.solicitud?.destino }} ({{ a.estado }})
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Placa</label>
+          <input [(ngModel)]="gasto.placa" name="placa" />
+        </div>
+
+        <div class="form-group">
+          <label>Ruta</label>
+          <input [(ngModel)]="gasto.ruta" name="ruta" />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de gasto</label>
+          <input [(ngModel)]="gasto.tipo" name="tipo" />
+        </div>
+
+        <div class="form-group">
+          <label>Proveedor</label>
+          <input [(ngModel)]="gasto.proveedor" name="proveedor" />
+        </div>
+
+        <div class="form-group">
+          <label>Comprobante</label>
+          <input [(ngModel)]="gasto.comprobante" name="comprobante" />
+        </div>
+
+        <div class="form-group">
+          <label>Monto (S/)</label>
+          <input type="number" [(ngModel)]="gasto.monto" name="monto" />
+        </div>
+
+        <div class="form-group">
+          <label>Fecha</label>
+          <input type="date" [(ngModel)]="gasto.fecha" name="fecha" />
+        </div>
+
+        <div class="form-group full-width">
+          <label>Observaciones</label>
+          <textarea [(ngModel)]="gasto.observaciones" name="observaciones"></textarea>
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cancelar" (click)="limpiar()">Cancelar</button>
+      </div>
+    </form>
+
+    <!-- 🔍 Buscador -->
+    <input
+      type="text"
+      placeholder="🔍 Buscar por tipo, proveedor o placa..."
+      [(ngModel)]="searchGasto"
+      (input)="buscarGasto()"
+    />
+
+    <!-- 📋 Tabla de gastos -->
+    <table>
+      <thead>
+        <tr>
+          <th>Asignación</th>
+          <th>Placa</th>
+          <th>Tipo</th>
+          <th>Proveedor</th>
+          <th>Monto</th>
+          <th>Fecha</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let g of gastos | slice:(pagina-1)*itemsPagina:(pagina*itemsPagina)">
+          <td>{{ g.asignacion?.vehiculo?.placa }}</td>
+          <td>{{ g.placa }}</td>
+          <td>{{ g.tipo }}</td>
+          <td>{{ g.proveedor }}</td>
+          <td>S/. {{ g.monto }}</td>
+          <td>{{ g.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <button (click)="editar(g)" class="btn-editar">✏️</button>
+            <button (click)="eliminar(g.id)" class="btn-eliminar">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="paginacion">
+      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️</button>
+      <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
+    </div>
+  </div>
+</div>

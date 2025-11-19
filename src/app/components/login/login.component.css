@@ -1,0 +1,234 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* === Fondo general centrado === */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* 💜 ESTA ES LA PARTE IMPORTANTE */
+:host {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* ahora sí centra el login verticalmente */
+  width: 100vw;
+  background: #7d2ae8;
+  background-image: url("img/maquinariapesada.jpg");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  overflow: hidden;
+}
+
+/* === Contenedor principal === */
+.container {
+  position: relative;
+  width: 850px;
+  max-width: 95%;
+  min-height: 480px;
+  background: #fff;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+  border-radius: 12px;
+  display: flex;
+  overflow: hidden;
+}
+
+/* === Parte visual izquierda (imagen + texto) === */
+.container .cover {
+  flex: 1;
+  background: rgba(125, 42, 232, 0.85);
+  background-image: linear-gradient(rgba(125, 42, 232, 0.6), rgba(125, 42, 232, 0.6)),
+                    url("img/maquinariapesada.jpg");
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 40px;
+}
+
+.cover .text .text-1 {
+  font-size: 26px;
+  font-weight: 600;
+}
+
+.cover .text .text-2 {
+  font-size: 15px;
+  font-weight: 400;
+  margin-top: 10px;
+}
+
+/* === Parte derecha (formulario) === */
+.forms {
+  flex: 1;
+  background: #fff;
+  padding: 50px 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+/* === Título === */
+.title {
+  position: relative;
+  font-size: 26px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.title:before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 3px;
+  width: 25px;
+  background: #7d2ae8;
+}
+
+/* === Inputs === */
+.input-box {
+  position: relative;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.input-box .material-icons {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #7d2ae8; /* morado elegante */
+  font-size: 22px;
+  line-height: 1;
+  transition: 0.3s ease;
+}
+
+.input-box input {
+  width: 100%;
+  height: 45px;
+  padding: 0 14px 0 42px; /* espacio para el icono */
+  border: none;
+  border-bottom: 2px solid #ccc;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+}
+
+.input-box input:focus {
+  border-color: #7d2ae8;
+}
+
+.input-box input:focus ~ .material-icons {
+  color: #5b13b9;
+  transform: translateY(-50%) scale(1.15);
+}
+s
+/* === Enlace === */
+.text {
+  text-align: right;
+  margin-bottom: 15px;
+  width: 100%;
+}
+
+.text a {
+  color: #7d2ae8;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.text a:hover {
+  text-decoration: underline;
+}
+
+/* === Botón === */
+.button input {
+  width: 100%;
+  height: 45px;
+  background: linear-gradient(45deg, #ff357a, #fff172);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.4s;
+}
+
+.button input:hover {
+  transform: scale(1.05);
+}
+
+/* === Responsive (tablets y móviles) === */
+@media (max-width: 900px) {
+  .container {
+    flex-direction: column-reverse;
+    width: 90%;
+    height: auto;
+  }
+
+  .cover {
+    width: 100%;
+    height: 200px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .cover .text .text-1 {
+    font-size: 20px;
+  }
+
+  .cover .text .text-2 {
+    font-size: 14px;
+  }
+
+  .forms {
+    width: 100%;
+    padding: 30px 20px;
+  }
+
+  .title {
+    font-size: 22px;
+  }
+
+  .button input {
+    height: 40px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .forms {
+    padding: 20px;
+  }
+
+  .input-box input {
+    height: 40px;
+    font-size: 15px;
+  }
+
+  .cover {
+    display: none;
+  }
+
+  .container {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+  }
+}

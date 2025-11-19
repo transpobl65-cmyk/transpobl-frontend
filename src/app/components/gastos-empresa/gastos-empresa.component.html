@@ -1,0 +1,121 @@
+<div class="card">
+  <div class="card-head">Registrar gasto</div>
+  <div class="card-body">
+    <form (ngSubmit)="guardar()" #gastoForm="ngForm" novalidate>
+      <div class="form-grid">
+        <div>
+          <label>Fecha <span class="required">*</span></label>
+          <input
+            type="date"
+            onfocus="this.showPicker()"  
+            [(ngModel)]="gasto.fecha"
+            name="fecha"
+            required
+            #fecha="ngModel"
+            [class.invalid]="fecha.invalid && gastoIntentado"
+          />
+        </div>
+
+        <div>
+          <label>Categoría <span class="required">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="gasto.categoria"
+            name="categoria"
+            placeholder="Ej. Mantenimiento"
+            required
+            #categoria="ngModel"
+            [class.invalid]="categoria.invalid && gastoIntentado"
+          />
+        </div>
+
+        <div>
+          <label>Monto (S/.) <span class="required">*</span></label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="gasto.monto"
+            name="monto"
+            required
+            #monto="ngModel"
+            [class.invalid]="monto.invalid && gastoIntentado"
+          />
+        </div>
+
+        <div>
+          <label>Descripción</label>
+          <textarea
+            [(ngModel)]="gasto.descripcion"
+            name="descripcion"
+            placeholder="Detalle del gasto (opcional)"
+          ></textarea>
+        </div>
+      </div>
+
+      <p class="error-msg" *ngIf="mostrarError">
+        ⚠️ Por favor, completa los campos obligatorios antes de guardar.
+      </p>
+
+      <div class="button-group">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cancelar" (click)="limpiar()">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Buscador -->
+<div class="buscador">
+  <input
+    type="text"
+    placeholder="Buscar gasto por categoría o descripción..."
+    [(ngModel)]="searchTerm"
+    (input)="buscar()"
+  />
+</div>
+
+<div class="card">
+  <div class="card-head">Gastos registrados</div>
+  <div class="card-body">
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Categoría</th>
+          <th>Descripción</th>
+          <th>Monto (S/)</th>
+          <th>Usuario</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr *ngFor="let g of listaFiltrada | slice:(paginaActual-1)*itemsPorPagina:(paginaActual*itemsPorPagina)">
+          <td>{{ g.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>{{ g.categoria }}</td>
+          <td>{{ g.descripcion || '—' }}</td>
+          <td>{{ g.monto | number:'1.2-2' }}</td>
+          <td>{{ g.creadoPor?.username }}</td>
+          <td>
+            <button class="btn-editar" (click)="editar(g)">✏️</button>
+            <button class="btn-eliminar" (click)="eliminar(g.id)">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ✅ PAGINACIÓN FUNCIONAL -->
+    <div class="paginacion" *ngIf="listaFiltrada.length > itemsPorPagina">
+      <button [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
+        ⬅️ Anterior
+      </button>
+
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+
+      <button [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
+        Siguiente ➡️
+      </button>
+    </div>
+  </div>
+</div>

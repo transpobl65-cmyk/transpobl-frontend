@@ -1,0 +1,97 @@
+<div class="card">
+  <div class="card-head">Registrar Coordinación</div>
+  <div class="card-body">
+    <form (ngSubmit)="guardar()">
+      <div class="form-grid">
+        
+        <!-- Solicitud -->
+        <div class="form-group">
+          <label for="solicitud">Solicitud *</label>
+          <select id="solicitud" [(ngModel)]="coordinacion.solicitud.id" name="solicitud" required>
+            <option value="">Seleccione una solicitud</option>
+            <option *ngFor="let s of solicitudes" [value]="s.id">
+              {{ s.cliente?.nombre }} - {{ s.destino }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Email empresa -->
+        <div class="form-group">
+          <label for="emailEmpresa">Email de la empresa *</label>
+          <input id="emailEmpresa" type="email" [(ngModel)]="coordinacion.emailEmpresa"
+                 name="emailEmpresa" placeholder="empresa@correo.com" required />
+        </div>
+
+        <!-- Observaciones -->
+        <div class="form-group full-width">
+          <label for="observaciones">Observaciones</label>
+          <textarea id="observaciones" [(ngModel)]="coordinacion.observaciones"
+                    name="observaciones"
+                    placeholder="Escribe el mensaje que irá en el correo al cliente..."></textarea>
+        </div>
+
+        <!-- 🆕 Subir PDF -->
+        <div class="form-group">
+          <label for="archivo">Adjuntar archivo PDF</label>
+          <input id="archivo" type="file" accept="application/pdf" (change)="onFileChange($event)" />
+          <small *ngIf="archivoSeleccionado" style="color: #ffa726;">
+            📎 {{ archivoSeleccionado.name }}
+          </small>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="button-group">
+        <button type="submit" class="btn-guardar">Guardar y Enviar</button>
+        <button type="button" class="btn-cancelar" (click)="limpiar()">Cancelar</button>
+      </div>
+    </form>
+
+    <!-- Búsqueda -->
+    <input
+      type="text"
+      placeholder="🔍 Buscar coordinación por email o cliente..."
+      [(ngModel)]="searchCoordinacion"
+      (input)="buscar()"
+    />
+
+    <!-- Tabla -->
+    <table>
+      <thead>
+        <tr>
+          <th>Solicitud</th>
+          <th>Email Empresa</th>
+          <th>Observaciones</th>
+          <th>Archivo</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of coordinaciones | slice:(pagina-1)*items:(pagina*items)">
+          <td>{{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}</td>
+          <td>{{ c.emailEmpresa }}</td>
+          <td>{{ c.observaciones }}</td>
+          <td>
+            <!-- 🆕 Descargar si existe archivo -->
+            <button *ngIf="c.archivoBase64" class="btn-descargar"
+                    (click)="descargarArchivo(c.archivoBase64, c.archivoNombre)">
+              ⬇️ Descargar
+            </button>
+            <span *ngIf="!c.archivoBase64">—</span>
+          </td>
+          <td>
+            <button (click)="editar(c)" class="btn-editar">✏️</button>
+            <button (click)="eliminar(c.id)" class="btn-eliminar">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Paginación -->
+    <div class="paginacion">
+      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️</button>
+      <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
+    </div>
+  </div>
+</div>
