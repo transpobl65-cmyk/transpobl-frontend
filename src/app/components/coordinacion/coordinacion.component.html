@@ -10,7 +10,7 @@
           <select id="solicitud" [(ngModel)]="coordinacion.solicitud.id" name="solicitud" required>
             <option value="">Seleccione una solicitud</option>
             <option *ngFor="let s of solicitudes" [value]="s.id">
-              {{ s.cliente.nombre }} - {{ s.destino }}
+              {{ s.cliente?.nombre }} - {{ s.destino }}
             </option>
           </select>
         </div>
@@ -68,7 +68,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let c of coordinaciones | slice:(pagina-1)*items:(pagina*items)">
-          <td>{{ c.solicitud.cliente.nombre }} - {{ c.solicitud.destino }}</td>
+          <td>{{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}</td>
           <td>{{ c.emailEmpresa }}</td>
           <td>{{ c.observaciones }}</td>
           <td>
