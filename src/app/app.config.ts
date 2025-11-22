@@ -22,7 +22,7 @@ export const appConfig: ApplicationConfig = {
         config: {
           tokenGetter: tokenGetter,
           allowedDomains: ['transpobl-backend.onrender.com'],
-          disallowedRoutes: ['https://transpobl-backend.onrender.com/login/forget'],
+          disallowedRoutes: ['https://transpobl-backend.onrender.com/login'],
 
         },
       })

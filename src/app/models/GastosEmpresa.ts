@@ -1,10 +1,11 @@
 export class GastosEmpresa {
-  id: number = 0;
+  id?: number;  // <-- SIN VALOR POR DEFECTO
   fecha: Date = new Date();
   categoria: string = "";
   descripcion: string = "";
   monto: number = 0;
 
-// Relación con el usuario que creó el gasto 
-creadoPor: { username: string; // se envía solo el username desde Angular 
-} = { username: "" }; }
+  creadoPor: {
+    username: string;
+  } = { username: "" };
+}
