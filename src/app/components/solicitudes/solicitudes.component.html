@@ -150,20 +150,21 @@
           <th>Acciones</th>
         </tr>
       </thead>
-      <tbody>
-        <tr *ngFor="let s of solicitudes | slice:(paginaActual-1)*itemsPorPagina:(paginaActual*itemsPorPagina)">
-          <td>{{ s.cliente?.nombre }}</td>
-          <td>{{ s.cliente?.rucDni }}</td>
-          <td>{{ s.vehiculo?.placa }} - {{ s.vehiculo?.marca }}</td>
-          <td>{{ s.destino }}</td>
-          <td>{{ s.precio | number:'1.2-2' }}</td>
-          <td>{{ s.fechaSalida | date:'dd/MM/yyyy' }}</td>
-          <td>
-            <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
-            <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
-          </td>
-        </tr>
-      </tbody>
+<tbody>
+  <tr *ngFor="let s of solicitudes | slice:(paginaActual-1)*itemsPorPagina:(paginaActual*itemsPorPagina)">
+    <td>{{ s.cliente?.nombre }}</td>
+    <td>{{ s.cliente?.rucDni }}</td>
+    <td>{{ s.vehiculo?.placa }} - {{ s.vehiculo?.marca }}</td>
+    <td>{{ s.destino }}</td>
+    <td>{{ s.precio | number:'1.2-2' }}</td>
+    <td>{{ s.fechaSalida | date:'dd/MM/yyyy' }}</td>
+    <td>
+      <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
+      <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
+    </td>
+  </tr>
+</tbody>
+
     </table>
 
     <div class="paginacion" *ngIf="solicitudes.length > itemsPorPagina">

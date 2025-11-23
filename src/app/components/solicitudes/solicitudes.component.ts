@@ -53,7 +53,10 @@ constructor(
 cargarDatos() {
   this.clientesService.list().subscribe(c => this.clientes = c);
   this.vehiculosService.list().subscribe(v => this.vehiculos = v);
-  this.solicitudesService.list().subscribe(s => this.solicitudes = s);
+  this.solicitudesService.list().subscribe(s => {
+    console.log('Solicitudes:', s);  // Agrega esto para verificar los datos
+    this.solicitudes = s;
+  });
 }
 
 

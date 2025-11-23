@@ -1,5 +1,5 @@
 export class GastosEmpresa {
-  id: number = 0 ;  // <-- SIN VALOR POR DEFECTO
+  id: number | null = null;
   fecha: Date = new Date();
   categoria: string = "";
   descripcion: string = "";
@@ -9,3 +9,4 @@ export class GastosEmpresa {
     username: string;
   } = { username: "" };
 }
+
