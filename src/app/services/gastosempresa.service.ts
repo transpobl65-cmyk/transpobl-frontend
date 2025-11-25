@@ -25,9 +25,15 @@ export class GastosEmpresaService {
   }
 
   // 🟢 Registrar gasto
-  insert(gasto: GastosEmpresa): Observable<any> {
-    return this.http.post(this.url, gasto, { headers: this.getAuthHeaders() });
-  }
+insert(gasto: GastosEmpresa): Observable<any> {
+
+  const { id, ...payload } = gasto;   // ⛔ SACA EL ID DEL OBJETO
+
+  return this.http.post(this.url, payload, {
+    headers: this.getAuthHeaders()
+  });
+}
+
 
   // 🟢 Listar todos
   list(): Observable<GastosEmpresa[]> {
