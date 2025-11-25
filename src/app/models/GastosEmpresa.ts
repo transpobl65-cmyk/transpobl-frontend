@@ -1,5 +1,6 @@
+
 export class GastosEmpresa {
-  id: number = 0 ;  
+  id?: number;   // ⭐ ID OPCIONAL, SIN NULL, SIN 0
   fecha: Date = new Date();
   categoria: string = "";
   descripcion: string = "";
