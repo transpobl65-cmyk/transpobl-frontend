@@ -25,10 +25,10 @@ export class CoordinacionesService {
 
   // ================== 🔹 CRUD ==================
 
-  // Crear una coordinación
   insert(coordinacion: Coordinacion): Observable<any> {
-    return this.http.post(this.url, coordinacion, { headers: this.getAuthHeaders() });
-  }
+  const { id, ...payload } = coordinacion;
+  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+}
 
   // Modificar una coordinación existente
   update(coordinacion: Coordinacion): Observable<any> {

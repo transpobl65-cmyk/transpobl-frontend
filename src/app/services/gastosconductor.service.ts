@@ -34,9 +34,11 @@ list(): Observable<GastosConductor[]> {
     return this.http.get<GastosConductor>(`${this.url}/${id}`, { headers: this.getAuthHeaders() });
   }
 
-  insert(gasto: GastosConductor): Observable<any> {
-    return this.http.post(this.url, gasto, { headers: this.getAuthHeaders() });
-  }
+insert(gasto: GastosConductor): Observable<any> {
+  const { id, ...payload } = gasto;
+  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+}
+
 
   update(gasto: GastosConductor): Observable<any> {
     return this.http.put(this.url, gasto, { headers: this.getAuthHeaders() });

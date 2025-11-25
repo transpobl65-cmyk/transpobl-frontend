@@ -24,10 +24,11 @@ export class AsignacionesService {
     });
   }
 
-  // 🔹 CRUD
-  insert(asignacion: Asignacion): Observable<any> {
-    return this.http.post(this.url, asignacion, { headers: this.getAuthHeaders() });
-  }
+insert(asignacion: Asignacion): Observable<any> {
+  const { id, ...payload } = asignacion;
+  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+}
+
 
   update(asignacion: Asignacion): Observable<any> {
     return this.http.put(this.url, asignacion, { headers: this.getAuthHeaders() });

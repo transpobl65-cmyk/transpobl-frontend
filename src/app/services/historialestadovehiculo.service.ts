@@ -23,10 +23,11 @@ export class HistorialestadovehiculoService {
     });
   }
 
-  // 🔹 CRUD
-  insert(historial: HistorialEstadoVehiculo): Observable<any> {
-    return this.http.post(this.url, historial, { headers: this.getAuthHeaders() });
-  }
+insert(historial: HistorialEstadoVehiculo): Observable<any> {
+  const { id, ...payload } = historial;
+  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+}
+
 
   update(historial: HistorialEstadoVehiculo): Observable<any> {
     return this.http.put(this.url, historial, { headers: this.getAuthHeaders() });

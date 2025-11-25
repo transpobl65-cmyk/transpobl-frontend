@@ -23,10 +23,12 @@ export class VehiculosService {
     });
   }
 
-  // 🔹 CRUD
   insert(vehiculo: Vehiculo): Observable<any> {
-    return this.http.post(this.url, vehiculo, { headers: this.getAuthHeaders() });
-  }
+  const { id, ...payload } = vehiculo;   // 💡 Quita el id sin usar delete
+  return this.http.post(this.url, payload, {
+    headers: this.getAuthHeaders()
+  });
+}
 
   update(vehiculo: Vehiculo): Observable<any> {
     return this.http.put(this.url, vehiculo, { headers: this.getAuthHeaders() });

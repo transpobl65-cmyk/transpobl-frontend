@@ -25,10 +25,10 @@ export class SolicitudesService {
     });
   }
 
-  // 🟢 Registrar solicitud
-  insert(solicitud: Solicitud): Observable<any> {
-    return this.http.post(this.url, solicitud, { headers: this.getAuthHeaders() });
-  }
+ insert(solicitud: Solicitud): Observable<any> {
+  const { id, ...payload } = solicitud;
+  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+}
 
   // 🟡 Modificar solicitud
   update(solicitud: Solicitud): Observable<any> {

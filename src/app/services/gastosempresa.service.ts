@@ -28,7 +28,6 @@ export class GastosEmpresaService {
 insert(gasto: GastosEmpresa): Observable<any> {
 
   const { id, ...payload } = gasto;   // ⛔ SACA EL ID DEL OBJETO
-
   return this.http.post(this.url, payload, {
     headers: this.getAuthHeaders()
   });

@@ -23,10 +23,11 @@ export class ClientesService {
     });
   }
 
-  // 🟢 Registrar cliente
-  insert(cliente: Cliente): Observable<Cliente> {
-    return this.http.post<Cliente>(this.url, cliente, { headers: this.getAuthHeaders() });
-  }
+insert(cliente: Cliente): Observable<Cliente> {
+  const { id, ...payload } = cliente;
+  return this.http.post<Cliente>(this.url, payload, { headers: this.getAuthHeaders() });
+}
+
 
   // 🟡 Modificar cliente
   update(cliente: Cliente): Observable<any> {
