@@ -1,5 +1,5 @@
 export class GastosEmpresa {
-  id: number | null = null;
+  id: number = 0 ;  
   fecha: Date = new Date();
   categoria: string = "";
   descripcion: string = "";
@@ -9,4 +9,3 @@ export class GastosEmpresa {
     username: string;
   } = { username: "" };
 }
-
