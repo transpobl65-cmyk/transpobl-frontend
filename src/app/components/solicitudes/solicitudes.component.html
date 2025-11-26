@@ -54,9 +54,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let c of clientesFiltrados | slice:(paginaCliente-1)*itemsCliente:(paginaCliente*itemsCliente)"
-        >
+        <tr *ngFor="let c of clientesFiltrados | slice:(paginaCliente-1)*itemsCliente:(paginaCliente*itemsCliente)">
           <td>{{ c.nombre }}</td>
           <td>{{ c.rucDni }}</td>
           <td>{{ c.email }}</td>
@@ -69,7 +67,8 @@
       </tbody>
     </table>
 
-    <div class="paginacion" *ngIf="totalPaginasClientes > 1">
+    <!-- 🔁 Paginador SIEMPRE visible -->
+    <div class="paginacion">
       <button [disabled]="paginaCliente === 1" (click)="cambiarPaginaCliente(-1)">⬅️</button>
       <span>Página {{ paginaCliente }} de {{ totalPaginasClientes }}</span>
       <button [disabled]="paginaCliente === totalPaginasClientes" (click)="cambiarPaginaCliente(1)">➡️</button>
@@ -136,7 +135,7 @@
         type="text"
         placeholder="Buscar por cliente, destino o vehículo..."
         [(ngModel)]="searchTerm"
-        (input)="buscarSolicitud()"
+        (input)="buscar()"
       />
     </div>
 
@@ -153,15 +152,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr
-          *ngFor="let s of solicitudesFiltradas | slice:(paginaSolicitud-1)*itemsSolicitud:(paginaSolicitud*itemsSolicitud)"
-        >
+        <tr *ngFor="let s of solicitudesFiltradas | slice:(paginaActual-1)*itemsPorPagina:(paginaActual*itemsPorPagina)">
           <td>{{ s.cliente?.nombre }}</td>
           <td>{{ s.cliente?.rucDni }}</td>
           <td>{{ s.vehiculo?.placa }} - {{ s.vehiculo?.marca }}</td>
           <td>{{ s.destino }}</td>
-          <td>{{ s.precio | number: '1.2-2' }}</td>
-          <td>{{ s.fechaSalida | date: 'dd/MM/yyyy' }}</td>
+          <td>{{ s.precio | number:'1.2-2' }}</td>
+          <td>{{ s.fechaSalida | date:'dd/MM/yyyy' }}</td>
           <td>
             <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
             <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
@@ -170,15 +167,11 @@
       </tbody>
     </table>
 
-    <div class="paginacion" *ngIf="totalPaginasSolicitudes > 1">
-      <button [disabled]="paginaSolicitud === 1" (click)="cambiarPaginaSolicitud(-1)">⬅️</button>
-      <span>Página {{ paginaSolicitud }} de {{ totalPaginasSolicitudes }}</span>
-      <button
-        [disabled]="paginaSolicitud === totalPaginasSolicitudes"
-        (click)="cambiarPaginaSolicitud(1)"
-      >
-        ➡️
-      </button>
+    <!-- 🔁 Paginador SIEMPRE visible -->
+    <div class="paginacion">
+      <button [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">⬅️</button>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+      <button [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
     </div>
   </div>
 </div>

@@ -20,6 +20,7 @@ import { Vehiculo } from '../../models/Vehiculos';
   styleUrl: './solicitudes.component.css'
 })
 export class SolicitudesComponent implements OnInit {
+
   // 🧍 CLIENTES
   clientes: Cliente[] = [];
   clientesFiltrados: Cliente[] = [];
@@ -35,9 +36,10 @@ export class SolicitudesComponent implements OnInit {
 
   vehiculos: Vehiculo[] = [];
 
+  // búsqueda + paginación solicitudes
   searchTerm = '';
-  paginaSolicitud = 1;
-  itemsSolicitud = 3;
+  paginaActual = 1;
+  itemsPorPagina = 3;
 
   constructor(
     private clientesService: ClientesService,
@@ -50,7 +52,7 @@ export class SolicitudesComponent implements OnInit {
     this.cargarDatos();
   }
 
-  // 🔁 Cargar todo (clientes, vehículos, solicitudes)
+  // 🔄 CARGAR TODO DESDE EL BACKEND
   cargarDatos() {
     this.clientesService.list().subscribe(c => {
       this.clientes = c || [];
@@ -63,10 +65,10 @@ export class SolicitudesComponent implements OnInit {
     });
 
     this.solicitudesService.list().subscribe(s => {
-      console.log('📌 SOLICITUDES RECIBIDAS:', s);
+      console.log('📌 RAW SOLICITUDES DESDE API:', s);
       this.solicitudes = s || [];
       this.solicitudesFiltradas = [...this.solicitudes];
-      this.paginaSolicitud = 1;
+      this.paginaActual = 1;
     });
   }
 
@@ -82,11 +84,7 @@ export class SolicitudesComponent implements OnInit {
       : this.clientesService.insert(this.cliente);
 
     accion$.subscribe(() => {
-      alert(
-        this.cliente.id
-          ? '✅ Cliente actualizado correctamente.'
-          : '✅ Cliente registrado correctamente.'
-      );
+      alert(this.cliente.id ? '✅ Cliente actualizado correctamente.' : '✅ Cliente registrado correctamente.');
       this.cliente = new Cliente();
       this.cargarDatos();
     });
@@ -140,7 +138,7 @@ export class SolicitudesComponent implements OnInit {
         this.solicitud = new Solicitud();
         this.cargarDatos();
       },
-      error: err => {
+      error: (err) => {
         console.error('❌ Error al guardar solicitud:', err);
         alert('Ocurrió un error al guardar la solicitud (revisa la consola).');
       }
@@ -162,26 +160,31 @@ export class SolicitudesComponent implements OnInit {
     this.solicitud = new Solicitud();
   }
 
-  // 🔍 Búsqueda solicitudes (no destruye la lista original)
-  buscarSolicitud() {
-    const term = (this.searchTerm || '').trim().toLowerCase();
-
+  // 🔍 BÚSQUEDA SOLICITUDES (se trabaja sobre solicitudesFiltradas)
+  buscar() {
+    const term = (this.searchTerm || '').toLowerCase().trim();
     if (!term) {
       this.solicitudesFiltradas = [...this.solicitudes];
     } else {
-      this.solicitudesFiltradas = this.solicitudes.filter(s =>
-        (s.cliente?.nombre || '').toLowerCase().includes(term) ||
-        (s.destino || '').toLowerCase().includes(term) ||
-        (s.vehiculo?.placa || '').toLowerCase().includes(term)
-      );
+      this.solicitudesFiltradas = this.solicitudes.filter(s => {
+        const nombre = s.cliente?.nombre?.toLowerCase() || '';
+        const ruc = s.cliente?.rucDni?.toLowerCase() || '';
+        const destino = s.destino?.toLowerCase() || '';
+        const vehiculoTxt = `${s.vehiculo?.placa || ''} ${s.vehiculo?.marca || ''}`.toLowerCase();
+        return (
+          nombre.includes(term) ||
+          ruc.includes(term) ||
+          destino.includes(term) ||
+          vehiculoTxt.includes(term)
+        );
+      });
     }
-    this.paginaSolicitud = 1;
+    this.paginaActual = 1;
   }
 
-  // 🔍 Búsqueda clientes
+  // 🔍 BÚSQUEDA CLIENTES (igual que arriba pero con clientesFiltrados)
   buscarCliente() {
-    const term = (this.clienteBuscado || '').trim().toLowerCase();
-
+    const term = (this.clienteBuscado || '').toLowerCase().trim();
     if (!term) {
       this.clientesFiltrados = [...this.clientes];
     } else {
@@ -193,27 +196,23 @@ export class SolicitudesComponent implements OnInit {
     this.paginaCliente = 1;
   }
 
-  // 📄 Paginación CLIENTES
+  // 📄 PAGINACIÓN SOLICITUDES (sobre lista filtrada)
+  get totalPaginas(): number {
+    return Math.max(1, Math.ceil(this.solicitudesFiltradas.length / this.itemsPorPagina));
+  }
+
+  cambiarPagina(direccion: number) {
+    const nueva = this.paginaActual + direccion;
+    if (nueva >= 1 && nueva <= this.totalPaginas) this.paginaActual = nueva;
+  }
+
+  // 📄 PAGINACIÓN CLIENTES (sobre lista filtrada)
   get totalPaginasClientes(): number {
     return Math.max(1, Math.ceil(this.clientesFiltrados.length / this.itemsCliente));
   }
 
   cambiarPaginaCliente(direccion: number) {
     const nueva = this.paginaCliente + direccion;
-    if (nueva >= 1 && nueva <= this.totalPaginasClientes) {
-      this.paginaCliente = nueva;
-    }
-  }
-
-  // 📄 Paginación SOLICITUDES
-  get totalPaginasSolicitudes(): number {
-    return Math.max(1, Math.ceil(this.solicitudesFiltradas.length / this.itemsSolicitud));
-  }
-
-  cambiarPaginaSolicitud(direccion: number) {
-    const nueva = this.paginaSolicitud + direccion;
-    if (nueva >= 1 && nueva <= this.totalPaginasSolicitudes) {
-      this.paginaSolicitud = nueva;
-    }
+    if (nueva >= 1 && nueva <= this.totalPaginasClientes) this.paginaCliente = nueva;
   }
 }
