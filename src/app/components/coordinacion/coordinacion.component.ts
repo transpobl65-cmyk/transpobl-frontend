@@ -63,56 +63,27 @@ coordinaciones: Coordinacion[] = [];
   }
 
   // ✅ Guardar coordinación y enviar correo
-  guardar() {
-    // Guardar archivo si se ha seleccionado
-    if (this.archivoSeleccionado) {
-      this.coordinacion.archivoNombre = this.archivoSeleccionado.name;
-      this.coordinacion.archivoBase64 = this.archivoBase64;
-    }
-
-    const accion$ = this.coordinacion.id
-      ? this.coordinacionService.update(this.coordinacion)
-      : this.coordinacionService.insert(this.coordinacion);
-
-    accion$.subscribe(() => {
-      alert(this.coordinacion.id ? '✅ Coordinación actualizada' : '✅ Coordinación registrada');
-
-      // ✉️ Enviar correo con EmailJS
-const templateParams: any = {
-  title: 'Nueva Coordinación',
-  name: this.coordinacion.solicitud?.cliente?.nombre || 'Cliente',
-  email: this.coordinacion.emailEmpresa,
-  message: this.coordinacion.observaciones || 'Sin observaciones registradas.',
-  time: new Date().toLocaleString(),
-};
-      emailjs
-     emailjs.send(
-  'service_ffz3yie',     // ✅ Tu Service ID (Gmail)
-  'contact_us',          // ✅ Template ID (de tu plantilla)
-  {
-    name: this.coordinacion.solicitud?.cliente?.nombre || 'Cliente',
-    email: this.coordinacion.emailEmpresa,
-    message: this.coordinacion.observaciones || 'Sin observaciones registradas.',
-    time: new Date().toLocaleString()
-  },
-  'd6p3lsYZVUEVjDh2W'    // ✅ Tu Public Key real
-)
-.then(
-  (result: EmailJSResponseStatus) => {
-    console.log('📨 Correo enviado correctamente:', result.text);
-    alert('✅ Correo enviado correctamente al cliente.');
-  },
-  error => {
-    console.error('❌ Error detallado:', error);
-    alert('❌ Error al enviar el correo: ' + JSON.stringify(error));
+guardar() {
+  // Guardar archivo si se ha seleccionado
+  if (this.archivoSeleccionado) {
+    this.coordinacion.archivoNombre = this.archivoSeleccionado.name;
+    this.coordinacion.archivoBase64 = this.archivoBase64;
   }
-);
 
+  const accion$ = this.coordinacion.id
+    ? this.coordinacionService.update(this.coordinacion)
+    : this.coordinacionService.insert(this.coordinacion);
 
-      this.limpiar();
-      this.cargarTodo();
-    });
-  }
+  accion$.subscribe(() => {
+    alert(this.coordinacion.id ? '✅ Coordinación actualizada' : '✅ Coordinación registrada');
+
+    // 👉 YA NO SE ENVÍA CORREO, SOLO GUARDA
+
+    this.limpiar();
+    this.cargarTodo();
+  });
+}
+
 
   editar(c: Coordinacion) {
     this.coordinacion = JSON.parse(JSON.stringify(c));
