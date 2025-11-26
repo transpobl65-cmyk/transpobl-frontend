@@ -25,8 +25,15 @@ export class HistorialestadovehiculoService {
 
 insert(historial: HistorialEstadoVehiculo): Observable<any> {
   const { id, ...payload } = historial;
-  return this.http.post(this.url, payload, { headers: this.getAuthHeaders() });
+
+  // 🔥 Enviar solo el id del vehículo, ignorando el resto
+  payload.vehiculo = { id: historial.vehiculo.id } as any;
+
+  return this.http.post(this.url, payload, {
+    headers: this.getAuthHeaders()
+  });
 }
+
 
 
   update(historial: HistorialEstadoVehiculo): Observable<any> {

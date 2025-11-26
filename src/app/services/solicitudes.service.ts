@@ -4,6 +4,7 @@ import { Solicitud } from '../models/Solicitudes';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { Vehiculo } from '../models/Vehiculos';
+import { tap } from 'rxjs/operators';
 
 const base_url = environment.base;
 
@@ -45,10 +46,13 @@ export class SolicitudesService {
     return this.http.get<Solicitud>(`${this.url}/${id}`, { headers: this.getAuthHeaders() });
   }
 
-  // 📋 Listar todas las solicitudes
+    // 📋 Listar todas las solicitudes
   list(): Observable<Solicitud[]> {
-    return this.http.get<Solicitud[]>(this.url, { headers: this.getAuthHeaders() });
+    return this.http
+      .get<Solicitud[]>(this.url, { headers: this.getAuthHeaders() })
+      .pipe(tap(res => console.log('📌 RAW SOLICITUDES BACKEND:', res)));
   }
+
 
   // 🚛 NUEVO → Listar todos los vehículos (para el combo select)
   listVehiculos(): Observable<Vehiculo[]> {

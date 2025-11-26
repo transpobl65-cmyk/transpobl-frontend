@@ -19,46 +19,56 @@ import { Vehiculo } from '../../models/Vehiculos';
   templateUrl: './solicitudes.component.html',
   styleUrl: './solicitudes.component.css'
 })
-export class SolicitudesComponent implements OnInit{
-  // 🧍 Clientes
+export class SolicitudesComponent implements OnInit {
+  // 🧍 CLIENTES
   clientes: Cliente[] = [];
+  clientesFiltrados: Cliente[] = [];
   cliente: Cliente = new Cliente();
   clienteBuscado = '';
   paginaCliente = 1;
   itemsCliente = 3;
 
-  // 🚚 Solicitudes
+  // 🚚 SOLICITUDES
   solicitudes: Solicitud[] = [];
+  solicitudesFiltradas: Solicitud[] = [];
   solicitud: Solicitud = new Solicitud();
 
   vehiculos: Vehiculo[] = [];
 
-
   searchTerm = '';
-  paginaActual = 1;
-  itemsPorPagina = 3;
+  paginaSolicitud = 1;
+  itemsSolicitud = 3;
 
-constructor(
-  private clientesService: ClientesService,
-  private solicitudesService: SolicitudesService,
-  private vehiculosService: VehiculosService, // 👈 nuevo
-  private loginService: LoginService
-) {}
-
+  constructor(
+    private clientesService: ClientesService,
+    private solicitudesService: SolicitudesService,
+    private vehiculosService: VehiculosService,
+    private loginService: LoginService
+  ) {}
 
   ngOnInit(): void {
     this.cargarDatos();
   }
 
-cargarDatos() {
-  this.clientesService.list().subscribe(c => this.clientes = c);
-  this.vehiculosService.list().subscribe(v => this.vehiculos = v);
-  this.solicitudesService.list().subscribe(s => {
-    console.log('Solicitudes:', s);  // Agrega esto para verificar los datos
-    this.solicitudes = s;
-  });
-}
+  // 🔁 Cargar todo (clientes, vehículos, solicitudes)
+  cargarDatos() {
+    this.clientesService.list().subscribe(c => {
+      this.clientes = c || [];
+      this.clientesFiltrados = [...this.clientes];
+      this.paginaCliente = 1;
+    });
 
+    this.vehiculosService.list().subscribe(v => {
+      this.vehiculos = v || [];
+    });
+
+    this.solicitudesService.list().subscribe(s => {
+      console.log('📌 SOLICITUDES RECIBIDAS:', s);
+      this.solicitudes = s || [];
+      this.solicitudesFiltradas = [...this.solicitudes];
+      this.paginaSolicitud = 1;
+    });
+  }
 
   // 🧍 CRUD CLIENTES
   guardarCliente() {
@@ -72,7 +82,11 @@ cargarDatos() {
       : this.clientesService.insert(this.cliente);
 
     accion$.subscribe(() => {
-      alert(this.cliente.id ? '✅ Cliente actualizado correctamente.' : '✅ Cliente registrado correctamente.');
+      alert(
+        this.cliente.id
+          ? '✅ Cliente actualizado correctamente.'
+          : '✅ Cliente registrado correctamente.'
+      );
       this.cliente = new Cliente();
       this.cargarDatos();
     });
@@ -94,26 +108,44 @@ cargarDatos() {
   }
 
   // 🚚 CRUD SOLICITUDES
- guardarSolicitud() {
-  if (!this.solicitud.cliente || !this.solicitud.destino || !this.solicitud.fechaSalida) {
-    alert('⚠️ Complete los campos de la solicitud.');
-    return;
+  guardarSolicitud() {
+    if (
+      !this.solicitud.cliente ||
+      !this.solicitud.cliente.id ||
+      !this.solicitud.vehiculo ||
+      !this.solicitud.vehiculo.id ||
+      !this.solicitud.destino ||
+      !this.solicitud.fechaSalida
+    ) {
+      alert('⚠️ Complete los campos de la solicitud.');
+      return;
+    }
+
+    // usuario autenticado
+    this.solicitud.usuario.username = this.loginService.showUsername();
+
+    console.log('📦 Enviando solicitud:', this.solicitud);
+
+    const accion$ = this.solicitud.id
+      ? this.solicitudesService.update(this.solicitud)
+      : this.solicitudesService.insert(this.solicitud);
+
+    accion$.subscribe({
+      next: () => {
+        alert(
+          this.solicitud.id
+            ? '✅ Solicitud actualizada correctamente.'
+            : '✅ Solicitud registrada correctamente.'
+        );
+        this.solicitud = new Solicitud();
+        this.cargarDatos();
+      },
+      error: err => {
+        console.error('❌ Error al guardar solicitud:', err);
+        alert('Ocurrió un error al guardar la solicitud (revisa la consola).');
+      }
+    });
   }
-
-  this.solicitud.usuario.username = this.loginService.showUsername();
-
-  console.log('📦 Enviando solicitud:', this.solicitud); // 👈 agrega esto para verificar
-
-  const accion$ = this.solicitud.id
-    ? this.solicitudesService.update(this.solicitud)
-    : this.solicitudesService.insert(this.solicitud);
-
-  accion$.subscribe(() => {
-    alert(this.solicitud.id ? '✅ Solicitud actualizada correctamente.' : '✅ Solicitud registrada correctamente.');
-    this.solicitud = new Solicitud();
-    this.cargarDatos();
-  });
-}
 
   editarSolicitud(s: Solicitud) {
     this.solicitud = JSON.parse(JSON.stringify(s));
@@ -130,46 +162,58 @@ cargarDatos() {
     this.solicitud = new Solicitud();
   }
 
-  // 🔍 Búsqueda solicitudes
-  buscar() {
-    const term = this.searchTerm.toLowerCase();
+  // 🔍 Búsqueda solicitudes (no destruye la lista original)
+  buscarSolicitud() {
+    const term = (this.searchTerm || '').trim().toLowerCase();
+
     if (!term) {
-      this.cargarDatos();
-      return;
+      this.solicitudesFiltradas = [...this.solicitudes];
+    } else {
+      this.solicitudesFiltradas = this.solicitudes.filter(s =>
+        (s.cliente?.nombre || '').toLowerCase().includes(term) ||
+        (s.destino || '').toLowerCase().includes(term) ||
+        (s.vehiculo?.placa || '').toLowerCase().includes(term)
+      );
     }
-    this.solicitudes = this.solicitudes.filter(s =>
-      s.cliente.nombre.toLowerCase().includes(term) || s.destino.toLowerCase().includes(term)
-    );
+    this.paginaSolicitud = 1;
   }
 
   // 🔍 Búsqueda clientes
   buscarCliente() {
-    const term = this.clienteBuscado.toLowerCase();
+    const term = (this.clienteBuscado || '').trim().toLowerCase();
+
     if (!term) {
-      this.cargarDatos();
-      return;
+      this.clientesFiltrados = [...this.clientes];
+    } else {
+      this.clientesFiltrados = this.clientes.filter(c =>
+        (c.nombre || '').toLowerCase().includes(term) ||
+        (c.rucDni || '').toLowerCase().includes(term)
+      );
     }
-    this.clientes = this.clientes.filter(c =>
-      c.nombre.toLowerCase().includes(term) || c.rucDni.toLowerCase().includes(term)
-    );
+    this.paginaCliente = 1;
   }
 
-  // 📄 Paginación
-  get totalPaginas(): number {
-    return Math.ceil(this.solicitudes.length / this.itemsPorPagina);
-  }
-
-  cambiarPagina(direccion: number) {
-    const nueva = this.paginaActual + direccion;
-    if (nueva >= 1 && nueva <= this.totalPaginas) this.paginaActual = nueva;
-  }
-
+  // 📄 Paginación CLIENTES
   get totalPaginasClientes(): number {
-    return Math.ceil(this.clientes.length / this.itemsCliente);
+    return Math.max(1, Math.ceil(this.clientesFiltrados.length / this.itemsCliente));
   }
 
   cambiarPaginaCliente(direccion: number) {
     const nueva = this.paginaCliente + direccion;
-    if (nueva >= 1 && nueva <= this.totalPaginasClientes) this.paginaCliente = nueva;
+    if (nueva >= 1 && nueva <= this.totalPaginasClientes) {
+      this.paginaCliente = nueva;
+    }
+  }
+
+  // 📄 Paginación SOLICITUDES
+  get totalPaginasSolicitudes(): number {
+    return Math.max(1, Math.ceil(this.solicitudesFiltradas.length / this.itemsSolicitud));
+  }
+
+  cambiarPaginaSolicitud(direccion: number) {
+    const nueva = this.paginaSolicitud + direccion;
+    if (nueva >= 1 && nueva <= this.totalPaginasSolicitudes) {
+      this.paginaSolicitud = nueva;
+    }
   }
 }
