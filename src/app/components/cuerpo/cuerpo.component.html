@@ -1,66 +1,94 @@
-<div class="dashboard-container">
-  <h1 class="title">Dashboard</h1>
 
-  <div class="card-header">
-    <div class="card-head">Indicadores y reportes</div>
+<div class="dashboard-container">
+
+  <!-- Header + selector de año -->
+  <div class="dashboard-header">
+    <div>
+      <h1 class="title">Tablero principal</h1>
+      <p class="subtitle">Indicadores y reportes de la operación</p>
+    </div>
+
+    <div class="year-selector">
+      <label for="year">Año:</label>
+      <select id="year"
+              [(ngModel)]="anioSeleccionado"
+              (change)="actualizarDashboard()">
+        <option *ngFor="let y of aniosDisponibles" [ngValue]="y">
+          {{ y }}
+        </option>
+      </select>
+    </div>
   </div>
 
-  <!-- GRID DE REPORTES (8) -->
-  <div class="grid">
-
-    <!-- 1. Estado de la flota -->
-    <div class="chart-card">
-      <h3>Estado de la flota</h3>
-      <canvas #chartFlota></canvas>
+  <!-- TARJETAS DE INDICADORES -->
+  <div class="stats-row">
+    <div class="stat-card blue">
+      <div class="stat-number">{{ totalVehiculos }}</div>
+      <div class="stat-label">Total de vehículos</div>
     </div>
 
-    <!-- 2. Historial de uso del vehículo -->
-    <div class="chart-card">
-      <h3>Historial de uso (registros por día)</h3>
-      <canvas #chartHistorial></canvas>
+    <div class="stat-card green">
+      <div class="stat-number">
+        S/ {{ totalGastosEmpresaAnio | number:'1.2-2' }}
+      </div>
+      <div class="stat-label">
+        Total gastos empresa {{ anioSeleccionado }}
+      </div>
     </div>
 
-    <!-- 3. Gastos de la empresa por categoría -->
-    <div class="chart-card">
-      <h3>Gastos por categoría</h3>
-      <canvas #chartGastosCategoria></canvas>
+    <div class="stat-card orange">
+      <div class="stat-number">
+        S/ {{ totalGastosConductorAnio | number:'1.2-2' }}
+      </div>
+      <div class="stat-label">
+        Total gastos conductor {{ anioSeleccionado }}
+      </div>
     </div>
 
-    <!-- 4. Gastos por conductor -->
-    <div class="chart-card">
-      <h3>Gastos por conductor</h3>
-      <canvas #chartGastosConductor></canvas>
+    <div class="stat-card purple">
+      <div class="stat-number">{{ totalClientes }}</div>
+      <div class="stat-label">
+        Total de clientes {{ anioSeleccionado }}
+      </div>
     </div>
 
-    <!-- 5. Solicitudes por destino -->
+    <div class="stat-card red">
+      <div class="stat-number">
+        S/ {{ gananciaTotal | number:'1.2-2' }}
+      </div>
+      <div class="stat-label">Ganancia total</div>
+    </div>
+  </div>
+
+  <!-- GRID PRINCIPAL (como tu mockup: izq barras, der pastel grande) -->
+  <div class="charts-grid main">
+    <!-- Solicitudes por destino -->
     <div class="chart-card">
-      <h3>Solicitudes por destino</h3>
-      <canvas #chartSolicitudesDestino></canvas>
+      <div class="chart-title">Solicitudes por destino</div>
+      <div class="chart-inner">
+        <canvas #chartSolicitudesDestino></canvas>
+      </div>
     </div>
 
-    <!-- 6. Coordinaciones por cliente -->
-    <div class="chart-card">
-      <h3>Coordinaciones por cliente</h3>
-      <canvas #chartCoordinaciones></canvas>
+    <!-- Estado de la flota (gráfico pastel grande) -->
+    <div class="chart-card big">
+      <div class="chart-title">Estado de la flota</div>
+      <div class="chart-inner">
+        <canvas #chartFlota></canvas>
+      </div>
     </div>
 
-    <!-- 7. Mantenimientos por vehículo -->
+    <!-- Gastos de empresa por mes -->
     <div class="chart-card">
-      <h3>Mantenimientos por vehículo</h3>
-      <canvas #chartMantenimientos></canvas>
+      <div class="chart-title">Gastos de la empresa por mes</div>
+      <div class="chart-inner">
+        <canvas #chartGastosMes></canvas>
+      </div>
     </div>
+  </div>
 
-    <!-- 8. Asignaciones por conductor -->
-    <div class="chart-card">
-      <h3>Asignaciones por conductor</h3>
-      <canvas #chartAsignaciones></canvas>
-    </div>
-    <!-- 9. Gastos de empresa por mes -->
-<div class="chart-card">
-  <h3>Gastos de empresa por mes</h3>
-  <canvas #chartGastosMes></canvas>
-</div>
-
+  <!-- OTROS REPORTES (abajo en grid elegante) -->
+  <div class="charts-grid secondary">
 
   </div>
 </div>
