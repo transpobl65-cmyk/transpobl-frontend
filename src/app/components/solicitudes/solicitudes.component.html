@@ -1,5 +1,5 @@
 <!-- 🧍 FORMULARIO CLIENTE -->
-<div class="card" *ngIf="role !== 'GERENTE'">
+<div class="card">
   <div class="card-head">Registrar Cliente</div>
   <div class="card-body">
     <form (ngSubmit)="guardarCliente()" #formCliente="ngForm" novalidate>
@@ -8,17 +8,14 @@
           <label>RUC / DNI *</label>
           <input type="text" [(ngModel)]="cliente.rucDni" name="rucDni" required />
         </div>
-
         <div>
           <label>Nombre *</label>
           <input type="text" [(ngModel)]="cliente.nombre" name="nombre" required />
         </div>
-
         <div>
           <label>Email</label>
           <input type="email" [(ngModel)]="cliente.email" name="email" />
         </div>
-
         <div>
           <label>Teléfono</label>
           <input type="text" [(ngModel)]="cliente.telefono" name="telefono" />
@@ -36,7 +33,6 @@
 <!-- 📋 LISTA DE CLIENTES -->
 <div class="card">
   <div class="card-head">Clientes Registrados</div>
-
   <div class="buscador">
     <input
       type="text"
@@ -54,18 +50,16 @@
           <th>RUC/DNI</th>
           <th>Email</th>
           <th>Teléfono</th>
-          <th *ngIf="role !== 'GERENTE'">Acciones</th>
+          <th>Acciones</th>
         </tr>
       </thead>
-
       <tbody>
         <tr *ngFor="let c of clientesFiltrados | slice:(paginaCliente-1)*itemsCliente:(paginaCliente*itemsCliente)">
           <td>{{ c.nombre }}</td>
           <td>{{ c.rucDni }}</td>
           <td>{{ c.email }}</td>
           <td>{{ c.telefono }}</td>
-
-          <td *ngIf="role !== 'GERENTE'">
+          <td>
             <button class="btn-editar" (click)="editarCliente(c)">✏️</button>
             <button class="btn-eliminar" (click)="eliminarCliente(c.id)">🗑️</button>
           </td>
@@ -73,39 +67,25 @@
       </tbody>
     </table>
 
-    <!-- 🔁 PAGINACIÓN -->
+    <!-- 🔁 Paginador SIEMPRE visible -->
     <div class="paginacion">
       <button [disabled]="paginaCliente === 1" (click)="cambiarPaginaCliente(-1)">⬅️</button>
-
-      <span>
-        Página {{ paginaCliente }} de {{ totalPaginasClientes }}
-      </span>
-
-      <button
-        [disabled]="paginaCliente === totalPaginasClientes"
-        (click)="cambiarPaginaCliente(1)"
-      >
-        ➡️
-      </button>
+      <span>Página {{ paginaCliente }} de {{ totalPaginasClientes }}</span>
+      <button [disabled]="paginaCliente === totalPaginasClientes" (click)="cambiarPaginaCliente(1)">➡️</button>
     </div>
   </div>
 </div>
 
 <!-- 🚚 FORMULARIO SOLICITUD -->
-<div class="card" *ngIf="role !== 'GERENTE'">
+<div class="card">
   <div class="card-head">Registrar Solicitud</div>
-
   <div class="card-body">
     <form (ngSubmit)="guardarSolicitud()" #formSolicitud="ngForm" novalidate>
-
       <div class="form-grid-2">
-
         <div>
           <label>Cliente *</label>
-
           <select [(ngModel)]="solicitud.cliente" name="cliente" required>
             <option [ngValue]="null">Seleccione cliente</option>
-
             <option *ngFor="let c of clientes" [ngValue]="c">
               {{ c.nombre }} ({{ c.rucDni }})
             </option>
@@ -114,10 +94,8 @@
 
         <div>
           <label>Vehículo *</label>
-
           <select [(ngModel)]="solicitud.vehiculo" name="vehiculo" required>
             <option [ngValue]="null">Seleccione vehículo</option>
-
             <option *ngFor="let v of vehiculos" [ngValue]="v">
               {{ v.placa }} - {{ v.marca }} ({{ v.tipo }})
             </option>
@@ -126,52 +104,24 @@
 
         <div>
           <label>Destino *</label>
-
-          <input
-            type="text"
-            [(ngModel)]="solicitud.destino"
-            name="destino"
-            required
-          />
+          <input type="text" [(ngModel)]="solicitud.destino" name="destino" required />
         </div>
 
         <div>
           <label>Precio del servicio (S/)*</label>
-
-          <input
-            type="number"
-            [(ngModel)]="solicitud.precio"
-            name="precio"
-            min="0"
-            required
-          />
+          <input type="number" [(ngModel)]="solicitud.precio" name="precio" min="0" required />
         </div>
 
         <div>
           <label>Fecha de salida *</label>
-
-          <input
-            type="date"
-            [(ngModel)]="solicitud.fechaSalida"
-            name="fechaSalida"
-            required
-          />
+          <input type="date" [(ngModel)]="solicitud.fechaSalida" name="fechaSalida" required />
         </div>
-
       </div>
 
       <div class="button-group">
         <button type="submit" class="btn-guardar">Guardar</button>
-
-        <button
-          type="button"
-          class="btn-cancelar"
-          (click)="cancelarSolicitud()"
-        >
-          Cancelar
-        </button>
+        <button type="button" class="btn-cancelar" (click)="cancelarSolicitud()">Cancelar</button>
       </div>
-
     </form>
   </div>
 </div>
@@ -179,9 +129,7 @@
 <!-- 📋 LISTADO DE SOLICITUDES -->
 <div class="card">
   <div class="card-head">Solicitudes Registradas</div>
-
   <div class="card-body">
-
     <div class="buscador">
       <input
         type="text"
@@ -192,7 +140,6 @@
     </div>
 
     <table>
-
       <thead>
         <tr>
           <th>Cliente</th>
@@ -201,54 +148,32 @@
           <th>Destino</th>
           <th>Precio (S/)</th>
           <th>Fecha salida</th>
-          <th *ngIf="role !== 'GERENTE'">Acciones</th>
+          <th>Acciones</th>
         </tr>
       </thead>
-
       <tbody>
         <tr *ngFor="let s of solicitudesFiltradas | slice:(paginaActual-1)*itemsPorPagina:(paginaActual*itemsPorPagina)">
-
           <td>{{ s.cliente?.nombre }}</td>
           <td>{{ s.cliente?.rucDni }}</td>
           <td>{{ s.vehiculo?.placa }} - {{ s.vehiculo?.marca }}</td>
           <td>{{ s.destino }}</td>
           <td>{{ s.precio | number:'1.2-2' }}</td>
           <td>{{ s.fechaSalida | date:'dd/MM/yyyy' }}</td>
-
-          <td *ngIf="role !== 'GERENTE'">
+          <td>
             <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
-
-            <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">
-              🗑️
-            </button>
+            <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
           </td>
-
         </tr>
       </tbody>
-
     </table>
 
-    <!-- 🔁 PAGINACIÓN -->
+    <!-- 🔁 Paginador SIEMPRE visible -->
     <div class="paginacion">
-
-      <button
-        [disabled]="paginaActual === 1"
-        (click)="cambiarPagina(-1)"
-      >
-        ⬅️
-      </button>
-
-      <span>
-        Página {{ paginaActual }} de {{ totalPaginas }}
-      </span>
-
-      <button
-        [disabled]="paginaActual === totalPaginas"
-        (click)="cambiarPagina(1)"
-      >
-        ➡️
-      </button>
-
+      <button [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">⬅️</button>
+      <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
+      <button [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
     </div>
   </div>
 </div>
+
+                      
