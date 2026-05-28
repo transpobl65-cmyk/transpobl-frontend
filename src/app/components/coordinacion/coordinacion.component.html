@@ -1,14 +1,24 @@
-<div class="card">
+<!-- 🔒 SOLO ADMINISTRADOR -->
+<div class="card" *ngIf="role !== 'GERENTE'">
   <div class="card-head">Registrar Coordinación</div>
+
   <div class="card-body">
     <form (ngSubmit)="guardar()">
+
       <div class="form-grid">
-        
+
         <!-- Solicitud -->
         <div class="form-group">
           <label for="solicitud">Solicitud *</label>
-          <select id="solicitud" [(ngModel)]="coordinacion.solicitud.id" name="solicitud" required>
+
+          <select
+            id="solicitud"
+            [(ngModel)]="coordinacion.solicitud.id"
+            name="solicitud"
+            required
+          >
             <option value="">Seleccione una solicitud</option>
+
             <option *ngFor="let s of solicitudes" [value]="s.id">
               {{ s.cliente?.nombre }} - {{ s.destino }}
             </option>
@@ -18,80 +28,207 @@
         <!-- Email empresa -->
         <div class="form-group">
           <label for="emailEmpresa">Email de la empresa *</label>
-          <input id="emailEmpresa" type="email" [(ngModel)]="coordinacion.emailEmpresa"
-                 name="emailEmpresa" placeholder="empresa@correo.com" required />
+
+          <input
+            id="emailEmpresa"
+            type="email"
+            [(ngModel)]="coordinacion.emailEmpresa"
+            name="emailEmpresa"
+            placeholder="empresa@correo.com"
+            required
+          />
         </div>
 
         <!-- Observaciones -->
         <div class="form-group full-width">
           <label for="observaciones">Observaciones</label>
-          <textarea id="observaciones" [(ngModel)]="coordinacion.observaciones"
-                    name="observaciones"
-                    placeholder="Escribe el mensaje que irá en el correo al cliente..."></textarea>
+
+          <textarea
+            id="observaciones"
+            [(ngModel)]="coordinacion.observaciones"
+            name="observaciones"
+            placeholder="Escribe el mensaje que irá en el correo al cliente..."
+          ></textarea>
         </div>
 
-        <!-- 🆕 Subir PDF -->
+        <!-- 📎 Archivo -->
         <div class="form-group">
-          <label for="archivo">Adjuntar archivo PDF</label>
-          <input id="archivo" type="file" accept="application/pdf" (change)="onFileChange($event)" />
+          <label for="archivo">Adjuntar archivo PDF o Word</label>
+
+          <input
+            id="archivo"
+            type="file"
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            (change)="onFileChange($event)"
+          />
+
           <small *ngIf="archivoSeleccionado" style="color: #ffa726;">
             📎 {{ archivoSeleccionado.name }}
           </small>
+
+          <small
+            *ngIf="!archivoSeleccionado && coordinacion.archivoNombre"
+            style="color: #ffa726;"
+          >
+            📎 Archivo actual: {{ coordinacion.archivoNombre }}
+          </small>
         </div>
+
       </div>
 
       <!-- Botones -->
       <div class="button-group">
-        <button type="submit" class="btn-guardar">Guardar</button>
-        <button type="button" class="btn-cancelar" (click)="limpiar()">Cancelar</button>
+        <button type="submit" class="btn-guardar">
+          Guardar
+        </button>
+
+        <button
+          type="button"
+          class="btn-cancelar"
+          (click)="limpiar()"
+        >
+          Cancelar
+        </button>
       </div>
+
     </form>
+  </div>
+</div>
 
-    <!-- Búsqueda -->
-    <input
-      type="text"
-      placeholder="🔍 Buscar coordinación por email o cliente..."
-      [(ngModel)]="searchCoordinacion"
-      (input)="buscar()"
-    />
+<!-- 🔍 BUSCADOR -->
+<input
+  type="text"
+  placeholder="🔍 Buscar coordinación por email o cliente..."
+  [(ngModel)]="searchCoordinacion"
+  (input)="buscar()"
+/>
 
-    <!-- Tabla -->
-    <table>
+<!-- 📋 TABLA -->
+<div class="card">
+
+  <div class="card-head">
+    Coordinaciones Registradas
+  </div>
+
+  <div class="card-body">
+
+    <!-- ✅ SI HAY DATOS -->
+    <table *ngIf="coordinaciones.length > 0">
+
       <thead>
         <tr>
           <th>Solicitud</th>
           <th>Email Empresa</th>
           <th>Observaciones</th>
           <th>Archivo</th>
-          <th>Acciones</th>
+
+          <th *ngIf="role !== 'GERENTE'">
+            Acciones
+          </th>
         </tr>
       </thead>
+
       <tbody>
+
         <tr *ngFor="let c of coordinaciones | slice:(pagina-1)*items:(pagina*items)">
-          <td>{{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}</td>
-          <td>{{ c.emailEmpresa }}</td>
-          <td>{{ c.observaciones }}</td>
+
           <td>
-            <!-- 🆕 Descargar si existe archivo -->
-            <button *ngIf="c.archivoBase64" class="btn-descargar"
-                    (click)="descargarArchivo(c.archivoBase64, c.archivoNombre)">
+            {{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}
+          </td>
+
+          <td>{{ c.emailEmpresa }}</td>
+
+          <td>{{ c.observaciones }}</td>
+
+          <td>
+
+            <button
+              *ngIf="c.archivoBase64"
+              class="btn-descargar"
+              (click)="descargarArchivo(c.archivoBase64, c.archivoNombre)"
+            >
               ⬇️ Descargar
             </button>
-            <span *ngIf="!c.archivoBase64">—</span>
+
+            <span *ngIf="!c.archivoBase64">
+              —
+            </span>
+
           </td>
-          <td>
-            <button (click)="editar(c)" class="btn-editar">✏️</button>
-            <button (click)="eliminar(c.id)" class="btn-eliminar">🗑️</button>
+
+          <td *ngIf="role !== 'GERENTE'">
+
+            <button
+              (click)="editar(c)"
+              class="btn-editar"
+            >
+              ✏️
+            </button>
+
+            <button
+              (click)="eliminar(c.id)"
+              class="btn-eliminar"
+            >
+              🗑️
+            </button>
+
           </td>
+
         </tr>
+
       </tbody>
+
     </table>
 
-    <!-- Paginación -->
-    <div class="paginacion">
-      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️</button>
-      <span>Página {{ pagina }} de {{ totalPaginas }}</span>
-      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
+    <!-- ❌ SIN DATOS -->
+    <div
+      *ngIf="coordinaciones.length === 0"
+      style="
+        text-align:center;
+        padding: 40px 20px;
+        color:#cbd5e1;
+      "
+    >
+
+      <div style="font-size: 60px; margin-bottom: 10px;">
+        📭
+      </div>
+
+      <h3 style="color:#ffa726; margin-bottom:10px;">
+        No hay coordinaciones registradas
+      </h3>
+
+      <p style="opacity:0.8;">
+        Aún no se ha registrado información en este módulo.
+      </p>
+
     </div>
+
+    <!-- 🔁 PAGINACIÓN -->
+    <div
+      class="paginacion"
+      *ngIf="coordinaciones.length > items"
+    >
+
+      <button
+        [disabled]="pagina === 1"
+        (click)="cambiarPagina(-1)"
+      >
+        ⬅️
+      </button>
+
+      <span>
+        Página {{ pagina }} de {{ totalPaginas }}
+      </span>
+
+      <button
+        [disabled]="pagina === totalPaginas"
+        (click)="cambiarPagina(1)"
+      >
+        ➡️
+      </button>
+
+    </div>
+
   </div>
 </div>

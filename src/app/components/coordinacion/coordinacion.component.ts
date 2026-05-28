@@ -6,6 +6,7 @@ import { Solicitud } from '../../models/Solicitudes';
 import { SolicitudesService } from '../../services/solicitudes.service';
 import { CoordinacionesService } from '../../services/coordinaciones.service';
 import emailjs, { EmailJSResponseStatus } from 'emailjs-com'; // 👈 Import EmailJS
+import { LoginService } from '../../services/login.service';
 
 @Component({
   selector: 'app-coordinacion',
@@ -29,12 +30,16 @@ coordinaciones: Coordinacion[] = [];
   archivoSeleccionado: File | null = null;
   archivoBase64: string = '';
 
+    role: string | null = null;
+
   constructor(
     private coordinacionService: CoordinacionesService,
-    private solicitudService: SolicitudesService
+    private solicitudService: SolicitudesService,
+    private loginService: LoginService
   ) {}
 
   ngOnInit(): void {
+         this.role = this.loginService.showRole();
     this.cargarTodo();
   }
 
@@ -45,26 +50,34 @@ coordinaciones: Coordinacion[] = [];
   }
 
   // ✅ Manejar archivo PDF
-  onFileChange(event: any) {
-    const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      this.archivoSeleccionado = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.archivoBase64 = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      alert('⚠️ Solo se permiten archivos PDF.');
-      event.target.value = '';
-      this.archivoSeleccionado = null;
-      this.archivoBase64 = '';
-    }
-  }
+onFileChange(event: any) {
+  const file = event.target.files[0];
 
-  // ✅ Guardar coordinación y enviar correo
+  if (!file) return;
+
+  const tiposPermitidos = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ];
+
+  if (tiposPermitidos.includes(file.type)) {
+    this.archivoSeleccionado = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.archivoBase64 = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  } else {
+    alert('⚠️ Solo se permiten archivos PDF o Word.');
+    event.target.value = '';
+    this.archivoSeleccionado = null;
+    this.archivoBase64 = '';
+  }
+}
+
 guardar() {
-  // Guardar archivo si se ha seleccionado
   if (this.archivoSeleccionado) {
     this.coordinacion.archivoNombre = this.archivoSeleccionado.name;
     this.coordinacion.archivoBase64 = this.archivoBase64;
@@ -76,9 +89,6 @@ guardar() {
 
   accion$.subscribe(() => {
     alert(this.coordinacion.id ? '✅ Coordinación actualizada' : '✅ Coordinación registrada');
-
-    // 👉 YA NO SE ENVÍA CORREO, SOLO GUARDA
-
     this.limpiar();
     this.cargarTodo();
   });
