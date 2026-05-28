@@ -50,14 +50,20 @@ searchAsignacion = '';
 paginaAsignacion = 1;
 itemsAsignacion = 3;
 
+  role: string | null = null;
+
+
 constructor(
   private vehiculosService: VehiculosService,
   private historialService: HistorialestadovehiculoService,
   private asignacionesService: AsignacionesService,
-  private solicitudesService: SolicitudesService
+  private solicitudesService: SolicitudesService,
+   private loginService: LoginService
+
 ) {}
 
 ngOnInit(): void {
+        this.role = this.loginService.showRole();
   this.cargarTodo();
 }
 
