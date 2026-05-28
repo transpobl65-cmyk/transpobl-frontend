@@ -36,6 +36,8 @@ export class SolicitudesComponent implements OnInit {
 
   vehiculos: Vehiculo[] = [];
 
+  role: string | null = null;
+
   // búsqueda + paginación solicitudes
   searchTerm = '';
   paginaActual = 1;
@@ -49,6 +51,7 @@ export class SolicitudesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+      this.role = this.loginService.showRole();
     this.cargarDatos();
   }
 
