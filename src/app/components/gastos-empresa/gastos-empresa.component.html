@@ -1,4 +1,4 @@
-<div class="card">
+<div class="card" *ngIf="role !== 'GERENTE'">
   <div class="card-head">Registrar gasto</div>
   <div class="card-body">
     <form (ngSubmit)="guardar()" #gastoForm="ngForm" novalidate>
@@ -86,7 +86,7 @@
           <th>Descripción</th>
           <th>Monto (S/)</th>
           <th>Usuario</th>
-          <th>Acciones</th>
+          <th *ngIf="role !== 'GERENTE'">Acciones</th>
         </tr>
       </thead>
 
@@ -97,7 +97,7 @@
           <td>{{ g.descripcion || '—' }}</td>
           <td>{{ g.monto | number:'1.2-2' }}</td>
           <td>{{ g.creadoPor?.username }}</td>
-          <td>
+          <td *ngIf="role !== 'GERENTE'">
             <button class="btn-editar" (click)="editar(g)">✏️</button>
             <button class="btn-eliminar" (click)="eliminar(g.id)">🗑️</button>
           </td>
@@ -105,7 +105,6 @@
       </tbody>
     </table>
 
-    <!-- ✅ PAGINACIÓN FUNCIONAL -->
     <div class="paginacion" *ngIf="listaFiltrada.length > itemsPorPagina">
       <button [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
         ⬅️ Anterior

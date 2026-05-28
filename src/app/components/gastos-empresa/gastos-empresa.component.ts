@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { GastosEmpresa } from '../../models/GastosEmpresa';
 import { GastosEmpresaService } from '../../services/gastosempresa.service';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { LoginService } from '../../services/login.service';
+
 
 @Component({
   selector: 'app-gastos-empresa',
@@ -27,9 +29,17 @@ export class GastosEmpresaComponent implements OnInit{
   gastoIntentado = false;
   mostrarError = false;
 
-  constructor(private service: GastosEmpresaService) {}
+  role: string | null = null;
+
+
+  constructor(private service: GastosEmpresaService,
+      private loginService: LoginService
+
+  ) {}
 
   ngOnInit() {
+      this.role = this.loginService.showRole();
+
     this.cargarLista();
   }
 
