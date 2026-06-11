@@ -121,39 +121,53 @@ export class CuerpoComponent implements AfterViewInit {
     if (grafico) grafico.destroy();
   }
 
-  cargarIndicadores() {
-    const year = this.anioSeleccionado;
+cargarIndicadores() {
+  const year = this.anioSeleccionado;
+  let ingresos = 0;
+  let gastosEmpresa = 0;
+  let gastosConductor = 0;
 
-    this.vehiculosService.list().subscribe(data => {
-      this.totalVehiculos = data.length;
-    });
+  const calcularGanancia = () => {
+    const impuesto = ingresos * 0.015; // 1.5% RER Perú
+    this.gananciaTotal = ingresos - gastosEmpresa - gastosConductor - impuesto;
+  };
 
-    this.solicitudesService.list().subscribe(data => {
-      const filtrado = data.filter(s => new Date(s.fechaSalida).getFullYear() === year);
+  this.vehiculosService.list().subscribe(data => {
+    this.totalVehiculos = data.length;
+  });
 
-      this.totalSolicitudes = filtrado.length;
-      this.totalClientes = new Set(filtrado.map(s => s.cliente?.id)).size;
-      this.gananciaTotal = filtrado.reduce((acc, s) => acc + (s.precio || 0), 0);
-    });
+  this.solicitudesService.list().subscribe(data => {
+    const filtrado = data.filter(s =>
+      new Date(s.fechaSalida).getFullYear() === year
+    );
+    this.totalSolicitudes = filtrado.length;
+    this.totalClientes = new Set(filtrado.map(s => s.cliente?.id)).size;
+    ingresos = filtrado.reduce((acc, s) => acc + (s.precio || 0), 0);
+    calcularGanancia();
+  });
 
-    this.coordinacionesService.list().subscribe(data => {
-      this.totalCoordinaciones = data
-        .filter(c => new Date(c.solicitud.fechaSalida).getFullYear() === year)
-        .length;
-    });
+  this.coordinacionesService.list().subscribe(data => {
+    this.totalCoordinaciones = data
+      .filter(c => new Date(c.solicitud.fechaSalida).getFullYear() === year)
+      .length;
+  });
 
-    this.gastosEmpresaService.list().subscribe(data => {
-      this.totalGastosEmpresaAnio = data
-        .filter(g => new Date(g.fecha).getFullYear() === year)
-        .reduce((acc, g) => acc + g.monto, 0);
-    });
+  this.gastosEmpresaService.list().subscribe(data => {
+    gastosEmpresa = data
+      .filter(g => new Date(g.fecha).getFullYear() === year)
+      .reduce((acc, g) => acc + g.monto, 0);
+    this.totalGastosEmpresaAnio = gastosEmpresa;
+    calcularGanancia();
+  });
 
-    this.gastosConductorService.list().subscribe(data => {
-      this.totalGastosConductorAnio = data
-        .filter(g => new Date(g.fecha).getFullYear() === year)
-        .reduce((acc, g) => acc + g.monto, 0);
-    });
-  }
+  this.gastosConductorService.list().subscribe(data => {
+    gastosConductor = data
+      .filter(g => new Date(g.fecha).getFullYear() === year)
+      .reduce((acc, g) => acc + g.monto, 0);
+    this.totalGastosConductorAnio = gastosConductor;
+    calcularGanancia();
+  });
+}
 
   // ==================== GRÁFICOS ====================
 
