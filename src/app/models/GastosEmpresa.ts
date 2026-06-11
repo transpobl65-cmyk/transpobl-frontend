@@ -1,7 +1,6 @@
 export class GastosEmpresa {
   id: number = 0 ;  
-  fecha: Date | null = null;  // ← cambia esto
-
+  fecha: Date = new Date();
   categoria: string = "";
   descripcion: string = "";
   monto: number = 0;
