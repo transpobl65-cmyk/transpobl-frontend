@@ -12,7 +12,7 @@
             name="fecha"
             required
             #fecha="ngModel"
-            [class.invalid]="!gasto.fecha && gastoIntentado"
+            [class.invalid]="(!gasto.fecha || gasto.fecha.toString().trim() === '') && gastoIntentado"
           />
         </div>
 

@@ -51,21 +51,24 @@ export class GastosEmpresaComponent implements OnInit{
     });
   }
 
-  guardar() {
-    this.gastoIntentado = true;
-    this.mostrarError =
-      !this.gasto.fecha || !this.gasto.categoria || !(this.gasto.monto > 0);
-    if (this.mostrarError) return;
+ guardar() {
+  this.gastoIntentado = true;
+  this.mostrarError =
+    !this.gasto.fecha ||
+    this.gasto.fecha.toString().trim() === '' ||
+    !this.gasto.categoria ||
+    !(this.gasto.monto > 0);
+  if (this.mostrarError) return;  // ← esto detiene el guardado
 
-    const accion$ = this.gasto.id
-      ? this.service.update(this.gasto)
-      : this.service.insert(this.gasto);
+  const accion$ = this.gasto.id
+    ? this.service.update(this.gasto)
+    : this.service.insert(this.gasto);
 
-    accion$.subscribe(() => {
-      this.limpiar();
-      this.cargarLista();
-    });
-  }
+  accion$.subscribe(() => {
+    this.limpiar();
+    this.cargarLista();
+  });
+}
 
   editar(g: GastosEmpresa) {
     this.gasto = { ...g, fecha: new Date(g.fecha) } as any;
