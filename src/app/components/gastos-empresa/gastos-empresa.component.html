@@ -15,36 +15,36 @@
           />
         </div>
 
-       <div>
-  <label>Categoría <span class="required">*</span></label>
-  <select
-    [(ngModel)]="gasto.categoria"
-    name="categoriaSelect"
-    [class.invalid]="categoria.invalid && gastoIntentado"
-    #categoria="ngModel"
-    required
-    (change)="categoriaPersonalizada = gasto.categoria === 'Otro'"
-  >
-    <option value="" disabled selected>Selecciona una categoría</option>
-    <option value="Combustible">Combustible</option>
-    <option value="Mantenimiento">Mantenimiento</option>
-    <option value="Repuestos">Repuestos</option>
-    <option value="Peajes">Peajes</option>
-    <option value="Servicios">Servicios</option>
-    <option value="Otro">Otro (especificar)</option>
-  </select>
+        <div>
+          <label>Categoría <span class="required">*</span></label>
+          <select
+            [(ngModel)]="gasto.categoria"
+            name="categoriaSelect"
+            [class.invalid]="categoria.invalid && gastoIntentado"
+            #categoria="ngModel"
+            required
+            (change)="categoriaPersonalizada = gasto.categoria === 'Otro'; gasto.categoria = gasto.categoria === 'Otro' ? '' : gasto.categoria"
+          >
+            <option value="" disabled selected>Selecciona una categoría</option>
+            <option value="Combustible">Combustible</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+            <option value="Repuestos">Repuestos</option>
+            <option value="Peajes">Peajes</option>
+            <option value="Servicios">Servicios</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
 
-  <input
-    *ngIf="categoriaPersonalizada"
-    type="text"
-    [(ngModel)]="gasto.categoria"
-    name="categoriaCustom"
-    placeholder="Escribe la categoría..."
-    required
-    style="margin-top: 0.5rem;"
-    [class.invalid]="(!gasto.categoria || gasto.categoria === 'Otro') && gastoIntentado"
-  />
-</div>
+          <input
+            *ngIf="categoriaPersonalizada"
+            type="text"
+            [(ngModel)]="gasto.categoria"
+            name="categoriaCustom"
+            placeholder="Escribe la categoría aquí..."
+            required
+            style="margin-top: 0.5rem;"
+            [class.invalid]="(!gasto.categoria || gasto.categoria.trim() === '') && gastoIntentado"
+          />
+        </div>
 
         <div>
           <label>Monto (S/.) <span class="required">*</span></label>
@@ -126,9 +126,7 @@
       <button [disabled]="paginaActual === 1" (click)="cambiarPagina(-1)">
         ⬅️ Anterior
       </button>
-
       <span>Página {{ paginaActual }} de {{ totalPaginas }}</span>
-
       <button [disabled]="paginaActual === totalPaginas" (click)="cambiarPagina(1)">
         Siguiente ➡️
       </button>
