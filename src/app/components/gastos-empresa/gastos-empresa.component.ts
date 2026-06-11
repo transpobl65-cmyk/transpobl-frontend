@@ -32,6 +32,7 @@ export class GastosEmpresaComponent implements OnInit{
   role: string | null = null;
 // agrega junto a las demás variables
 fechaInput: string = '';
+categoriaPersonalizada: boolean = false;
 
   constructor(private service: GastosEmpresaService,
       private loginService: LoginService
@@ -74,12 +75,16 @@ editar(g: GastosEmpresa) {
   // convierte la fecha a string formato yyyy-MM-dd para el input
   const d = new Date(g.fecha);
   this.fechaInput = d.toISOString().split('T')[0];
+ const listaFija = ['Combustible','Mantenimiento','Repuestos','Peajes','Servicios'];
+  this.categoriaPersonalizada = !listaFija.includes(g.categoria); // ← agrega esto
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 limpiar() {
   this.gasto = new GastosEmpresa();
   this.fechaInput = ''; // ← resetea el string
+  this.categoriaPersonalizada = false;
   this.gastoIntentado = false;
   this.mostrarError = false;
 }
