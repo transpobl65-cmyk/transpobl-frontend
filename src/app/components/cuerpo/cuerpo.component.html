@@ -1,4 +1,3 @@
-
 <div class="dashboard-container">
 
   <!-- Header + selector de año -->
@@ -28,53 +27,50 @@
     </div>
 
     <div class="stat-card green">
-      <div class="stat-number">
-        S/ {{ totalGastosEmpresaAnio | number:'1.2-2' }}
-      </div>
-      <div class="stat-label">
-        Total gastos empresa {{ anioSeleccionado }}
-      </div>
+      <div class="stat-number">S/ {{ totalGastosEmpresaAnio | number:'1.2-2' }}</div>
+      <div class="stat-label">Total gastos empresa {{ anioSeleccionado }}</div>
     </div>
 
     <div class="stat-card orange">
-      <div class="stat-number">
-        S/ {{ totalGastosConductorAnio | number:'1.2-2' }}
-      </div>
-      <div class="stat-label">
-        Total gastos conductor {{ anioSeleccionado }}
-      </div>
+      <div class="stat-number">S/ {{ totalGastosConductorAnio | number:'1.2-2' }}</div>
+      <div class="stat-label">Total gastos conductor {{ anioSeleccionado }}</div>
     </div>
 
     <div class="stat-card purple">
       <div class="stat-number">{{ totalClientes }}</div>
-      <div class="stat-label">
-        Total de clientes {{ anioSeleccionado }}
-      </div>
+      <div class="stat-label">Total de clientes {{ anioSeleccionado }}</div>
     </div>
 
     <div class="stat-card red">
-      <div class="stat-number">
-        S/ {{ gananciaTotal | number:'1.2-2' }}
-      </div>
+      <div class="stat-number">S/ {{ gananciaTotal | number:'1.2-2' }}</div>
       <div class="stat-label">Ganancia total</div>
     </div>
   </div>
 
-  <!-- GRID PRINCIPAL (como tu mockup: izq barras, der pastel grande) -->
+  <!-- GRID PRINCIPAL -->
   <div class="charts-grid main">
+
     <!-- Solicitudes por destino -->
     <div class="chart-card">
       <div class="chart-title">Solicitudes por destino</div>
       <div class="chart-inner">
-        <canvas #chartSolicitudesDestino></canvas>
+        <div class="no-data" *ngIf="totalSolicitudes === 0">
+          <span>📭</span>
+          <p>Sin datos para {{ anioSeleccionado }}</p>
+        </div>
+        <canvas #chartSolicitudesDestino *ngIf="totalSolicitudes > 0"></canvas>
       </div>
     </div>
 
-    <!-- Estado de la flota (gráfico pastel grande) -->
+    <!-- Estado de la flota -->
     <div class="chart-card big">
       <div class="chart-title">Estado de la flota</div>
       <div class="chart-inner">
-        <canvas #chartFlota></canvas>
+        <div class="no-data" *ngIf="totalVehiculos === 0">
+          <span>📭</span>
+          <p>Sin vehículos registrados</p>
+        </div>
+        <canvas #chartFlota *ngIf="totalVehiculos > 0"></canvas>
       </div>
     </div>
 
@@ -82,13 +78,16 @@
     <div class="chart-card">
       <div class="chart-title">Gastos de la empresa por mes</div>
       <div class="chart-inner">
-        <canvas #chartGastosMes></canvas>
+        <div class="no-data" *ngIf="totalGastosEmpresaAnio === 0">
+          <span>📭</span>
+          <p>Sin datos para {{ anioSeleccionado }}</p>
+        </div>
+        <canvas #chartGastosMes *ngIf="totalGastosEmpresaAnio > 0"></canvas>
       </div>
     </div>
-  </div>
-
-  <!-- OTROS REPORTES (abajo en grid elegante) -->
-  <div class="charts-grid secondary">
 
   </div>
+
+  <!-- OTROS REPORTES -->
+  <div class="charts-grid secondary"></div>
 </div>
