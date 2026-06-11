@@ -8,11 +8,10 @@
           <input
             type="date"
             onfocus="this.showPicker()"
-            [(ngModel)]="gasto.fecha"
+            [(ngModel)]="fechaInput"
             name="fecha"
             required
-            #fecha="ngModel"
-            [class.invalid]="(!gasto.fecha || gasto.fecha.toString().trim() === '') && gastoIntentado"
+            [class.invalid]="!fechaInput && gastoIntentado"
           />
         </div>
 

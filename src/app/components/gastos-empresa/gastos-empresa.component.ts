@@ -30,7 +30,8 @@ export class GastosEmpresaComponent implements OnInit{
   mostrarError = false;
 
   role: string | null = null;
-
+// agrega junto a las demás variables
+fechaInput: string = '';
 
   constructor(private service: GastosEmpresaService,
       private loginService: LoginService
@@ -51,14 +52,12 @@ export class GastosEmpresaComponent implements OnInit{
     });
   }
 
- guardar() {
+guardar() {
   this.gastoIntentado = true;
-  this.mostrarError =
-    !this.gasto.fecha ||
-    this.gasto.fecha.toString().trim() === '' ||
-    !this.gasto.categoria ||
-    !(this.gasto.monto > 0);
-  if (this.mostrarError) return;  // ← esto detiene el guardado
+  this.mostrarError = !this.fechaInput || !this.gasto.categoria || !(this.gasto.monto > 0);
+  if (this.mostrarError) return;
+
+  this.gasto.fecha = new Date(this.fechaInput); // convierte a Date antes de guardar
 
   const accion$ = this.gasto.id
     ? this.service.update(this.gasto)
@@ -70,10 +69,20 @@ export class GastosEmpresaComponent implements OnInit{
   });
 }
 
-  editar(g: GastosEmpresa) {
-    this.gasto = { ...g, fecha: new Date(g.fecha) } as any;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+editar(g: GastosEmpresa) {
+  this.gasto = { ...g } as any;
+  // convierte la fecha a string formato yyyy-MM-dd para el input
+  const d = new Date(g.fecha);
+  this.fechaInput = d.toISOString().split('T')[0];
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+limpiar() {
+  this.gasto = new GastosEmpresa();
+  this.fechaInput = ''; // ← resetea el string
+  this.gastoIntentado = false;
+  this.mostrarError = false;
+}
 
   eliminar(id: number) {
     if (!confirm('¿Eliminar este gasto?')) return;
@@ -85,11 +94,7 @@ export class GastosEmpresaComponent implements OnInit{
     });
   }
 
-  limpiar() {
-    this.gasto = new GastosEmpresa();
-    this.gastoIntentado = false;
-    this.mostrarError = false;
-  }
+
 
   buscar() {
     const term = (this.searchTerm || '').trim().toLowerCase();
