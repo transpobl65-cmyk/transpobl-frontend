@@ -181,27 +181,27 @@ export class EstadoCarrosComponent implements OnInit {
       }
     }
 
-    // ✅ Al editar, verificar si la asignación activa ya terminó
+    // ✅ Al editar, verificar si hay asignación activa HOY
     if (this.historial.id) {
-      const asignacionActiva = this.asignaciones
-        .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
-        .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      // ✅ Solo buscar asignaciones que aún estén activas HOY
+      const asignacionActiva = this.asignaciones.find(a => {
+        if (a.vehiculo?.id !== Number(this.historial.vehiculo.id)) return false;
+        const finStr = a.fin.toString().split('T')[0];
+        const [anio, mes, dia] = finStr.split('-').map(Number);
+        const fechaFin = new Date(anio, mes - 1, dia);
+        return hoy < fechaFin;
+      });
 
       if (asignacionActiva) {
-        // ✅ Parsear como fecha local para evitar desfase de timezone
         const finStr = asignacionActiva.fin.toString().split('T')[0];
         const [anio, mes, dia] = finStr.split('-').map(Number);
         const fechaFin = new Date(anio, mes - 1, dia);
-
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-
-        // ✅ < en vez de <= para permitir cambio al día siguiente de la fecha fin
-        if (hoy < fechaFin) {
-          const finFormateada = fechaFin.toLocaleDateString('es-PE');
-          this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
-          return;
-        }
+        const finFormateada = fechaFin.toLocaleDateString('es-PE');
+        this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+        return;
       }
     }
 
@@ -228,6 +228,7 @@ export class EstadoCarrosComponent implements OnInit {
     this.historial = JSON.parse(JSON.stringify(h));
     const d = new Date(h.fecha);
     this.fechaHistorialInput = d.toISOString().split('T')[0];
+    this.historial.notas = ''; // ✅ limpiar notas automáticas
     this.historialIntentado = false;
     this.errorHistorial = '';
   }
@@ -404,10 +405,16 @@ export class EstadoCarrosComponent implements OnInit {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    // ✅ < permite editar desde el mismo día fin en adelante
     if (hoy < fechaFin) {
       const finFormateada = fechaFin.toLocaleDateString('es-PE');
       alert(`⚠️ No puedes editar esta asignación porque aún está activa hasta el ${finFormateada}.`);
+      return;
+    }
+
+    // ✅ Bloqueado si ya pasó — queda como historial
+    if (hoy > fechaFin) {
+      const finFormateada = fechaFin.toLocaleDateString('es-PE');
+      alert(`⚠️ Esta asignación ya finalizó el ${finFormateada} y forma parte del historial del sistema. No puede ser editada.`);
       return;
     }
 
@@ -422,58 +429,58 @@ export class EstadoCarrosComponent implements OnInit {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-eliminarAsignacion(id: number) {
-  if (!confirm('¿Eliminar asignación?')) return;
+  eliminarAsignacion(id: number) {
+    if (!confirm('¿Eliminar asignación?')) return;
 
-  const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
+    const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
 
-  if (asignacionAEliminar) {
-    // ✅ Parsear fecha local para evitar desfase timezone
-    const finStr = asignacionAEliminar.fin.toString().split('T')[0];
-    const [anio, mes, dia] = finStr.split('-').map(Number);
-    const fechaFin = new Date(anio, mes - 1, dia);
+    if (asignacionAEliminar) {
+      // ✅ Parsear fecha local para evitar desfase timezone
+      const finStr = asignacionAEliminar.fin.toString().split('T')[0];
+      const [anio, mes, dia] = finStr.split('-').map(Number);
+      const fechaFin = new Date(anio, mes - 1, dia);
 
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
 
-    // ✅ Bloqueado si aún está activa
-    if (hoy < fechaFin) {
-      const finFormateada = fechaFin.toLocaleDateString('es-PE');
-      alert(`⚠️ No puedes eliminar esta asignación porque aún está activa hasta el ${finFormateada}. Espera a que termine.`);
-      return;
+      // ✅ Bloqueado si aún está activa
+      if (hoy < fechaFin) {
+        const finFormateada = fechaFin.toLocaleDateString('es-PE');
+        alert(`⚠️ No puedes eliminar esta asignación porque aún está activa hasta el ${finFormateada}. Espera a que termine.`);
+        return;
+      }
+
+      // ✅ Bloqueado si ya pasó — queda como historial
+      if (hoy > fechaFin) {
+        const finFormateada = fechaFin.toLocaleDateString('es-PE');
+        alert(`⚠️ Esta asignación ya finalizó el ${finFormateada} y forma parte del historial del sistema. No puede ser eliminada.`);
+        return;
+      }
     }
 
-    // ✅ Bloqueado si ya pasó — queda como historial
-    if (hoy > fechaFin) {
-      const finFormateada = fechaFin.toLocaleDateString('es-PE');
-      alert(`⚠️ Esta asignación ya finalizó el ${finFormateada} y forma parte del historial del sistema. No puede ser eliminada.`);
-      return;
-    }
-  }
-
-  // ✅ Solo llega aquí si hoy === fechaFin (mismo día)
-  this.asignacionesService.delete(id).subscribe(() => {
-    if (asignacionAEliminar?.vehiculo?.id) {
-      const historialExistente = this.historiales.find(
-        h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
-      );
-      if (historialExistente) {
-        const historialActualizado = {
-          ...historialExistente,
-          estado: 'ACTIVO',
-          fecha: new Date()
-        };
-        this.historialService.update(historialActualizado).subscribe(() => {
+    // ✅ Solo llega aquí si hoy === fechaFin (mismo día)
+    this.asignacionesService.delete(id).subscribe(() => {
+      if (asignacionAEliminar?.vehiculo?.id) {
+        const historialExistente = this.historiales.find(
+          h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
+        );
+        if (historialExistente) {
+          const historialActualizado = {
+            ...historialExistente,
+            estado: 'ACTIVO',
+            fecha: new Date()
+          };
+          this.historialService.update(historialActualizado).subscribe(() => {
+            this.cargarTodo();
+          });
+        } else {
           this.cargarTodo();
-        });
+        }
       } else {
         this.cargarTodo();
       }
-    } else {
-      this.cargarTodo();
-    }
-  });
-}
+    });
+  }
 
   buscarAsignacion() {
     const term = this.searchAsignacion.toLowerCase();
