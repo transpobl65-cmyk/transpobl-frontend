@@ -181,50 +181,40 @@ export class EstadoCarrosComponent implements OnInit {
     }
   }
 
-  // ✅ Al editar
-  if (this.historial.id) {
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+// ✅ Al editar
+if (this.historial.id) {
+  const [fAnio, fMes, fDia] = this.fechaHistorialInput.split('-').map(Number);
+  const fechaIngresada = new Date(fAnio, fMes - 1, fDia);
 
-    // ✅ Parsear fecha ingresada por el usuario
-    const [fAnio, fMes, fDia] = this.fechaHistorialInput.split('-').map(Number);
-    const fechaIngresada = new Date(fAnio, fMes - 1, fDia);
+  // ✅ Buscar la última asignación del vehículo
+  const ultimaAsignacion = this.asignaciones
+    .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
+    .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
 
-    // ✅ Buscar asignación activa del vehículo — solo las que aún no terminaron
-    const asignacionActiva = this.asignaciones.find(a => {
-      if (a.vehiculo?.id !== Number(this.historial.vehiculo.id)) return false;
-      const finStr = a.fin.toString().split('T')[0];
-      const [anio, mes, dia] = finStr.split('-').map(Number);
-      const fechaFin = new Date(anio, mes - 1, dia);
-      return hoy < fechaFin; // ✅ solo activas hoy
-    });
+  if (ultimaAsignacion) {
+    const finStr = ultimaAsignacion.fin.toString().split('T')[0];
+    const [fAnioFin, fMesFin, fDiaFin] = finStr.split('-').map(Number);
+    const fechaFin = new Date(fAnioFin, fMesFin - 1, fDiaFin);
 
-    if (asignacionActiva) {
-      const finStr = asignacionActiva.fin.toString().split('T')[0];
-      const [anio, mes, dia] = finStr.split('-').map(Number);
-      const fechaFin = new Date(anio, mes - 1, dia);
-      const finFormateada = fechaFin.toLocaleDateString('es-PE');
-      this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+    const inicioStr = ultimaAsignacion.inicio.toString().split('T')[0];
+    const [fAnioInicio, fMesInicio, fDiaInicio] = inicioStr.split('-').map(Number);
+    const fechaInicio = new Date(fAnioInicio, fMesInicio - 1, fDiaInicio);
+
+    // ✅ Bloquear si la fecha ingresada es MENOR O IGUAL a la fecha inicio
+    if (fechaIngresada <= fechaInicio) {
+      const inicioFormateada = fechaInicio.toLocaleDateString('es-PE');
+      this.errorHistorial = `⚠️ La fecha no puede ser anterior o igual a la fecha de inicio de la asignación (${inicioFormateada}).`;
       return;
     }
 
-    // ✅ Buscar la última asignación del vehículo para validar fecha mínima
-    const ultimaAsignacion = this.asignaciones
-      .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
-      .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
-
-    if (ultimaAsignacion) {
-      const inicioStr = ultimaAsignacion.inicio.toString().split('T')[0];
-      const [iAnio, iMes, iDia] = inicioStr.split('-').map(Number);
-      const fechaInicio = new Date(iAnio, iMes - 1, iDia);
-
-      if (fechaIngresada <= fechaInicio) {
-        const inicioFormateada = fechaInicio.toLocaleDateString('es-PE');
-        this.errorHistorial = `⚠️ La fecha no puede ser anterior o igual a la fecha de inicio de la última asignación (${inicioFormateada}).`;
-        return;
-      }
+    // ✅ Bloquear si la fecha ingresada es MENOR O IGUAL a la fecha fin
+    if (fechaIngresada <= fechaFin) {
+      const finFormateada = fechaFin.toLocaleDateString('es-PE');
+      this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}. Ingresa una fecha posterior al ${finFormateada}.`;
+      return;
     }
   }
+}
 
   this.historial.fecha = new Date(this.fechaHistorialInput) as any;
 
