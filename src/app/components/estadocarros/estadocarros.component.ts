@@ -378,6 +378,16 @@ onSolicitudSeleccionada() {
 
 
 editarAsignacion(a: Asignacion) {
+  // ✅ Bloquear edición si la asignación aún está activa
+  const fechaFin = new Date(a.fin).getTime();
+  const hoy = new Date().getTime();
+
+  if (hoy < fechaFin) {
+    const finFormateada = new Date(a.fin).toLocaleDateString('es-PE');
+    alert(`⚠️ No puedes editar esta asignación porque aún está activa hasta el ${finFormateada}.`);
+    return;
+  }
+
   this.asignacion = JSON.parse(JSON.stringify(a));
   this.solicitudSeleccionadaId = a.solicitud?.id || 0;
   this.vehiculoAsignadoId = a.vehiculo?.id || 0;
@@ -388,22 +398,28 @@ editarAsignacion(a: Asignacion) {
   this.errorAsignacion = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
-
 eliminarAsignacion(id: number) {
   if (!confirm('¿Eliminar asignación?')) return;
 
-  // ✅ Buscar la asignación antes de eliminarla para saber qué vehículo era
   const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
 
-  this.asignacionesService.delete(id).subscribe(() => {
+  // ✅ Bloquear si la asignación aún está activa
+  if (asignacionAEliminar) {
+    const fechaFin = new Date(asignacionAEliminar.fin).getTime();
+    const hoy = new Date().getTime();
 
-    // ✅ Actualizar el historial del vehículo a ACTIVO
+    if (hoy < fechaFin) {
+      const finFormateada = new Date(asignacionAEliminar.fin).toLocaleDateString('es-PE');
+      alert(`⚠️ No puedes eliminar esta asignación porque aún está activa hasta el ${finFormateada}. Espera a que termine.`);
+      return;
+    }
+  }
+
+  this.asignacionesService.delete(id).subscribe(() => {
     if (asignacionAEliminar?.vehiculo?.id) {
       const historialExistente = this.historiales.find(
         h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
       );
-
       if (historialExistente) {
         const historialActualizado = {
           ...historialExistente,
@@ -420,11 +436,11 @@ eliminarAsignacion(id: number) {
     } else {
       this.cargarTodo();
     }
-
   });
 }
+ 
 
-  buscarAsignacion() {
+buscarAsignacion() {
     const term = this.searchAsignacion.toLowerCase();
     if (!term) return this.cargarTodo();
     this.asignaciones = this.asignaciones.filter(a =>
