@@ -152,51 +152,49 @@ export class CuerpoComponent implements AfterViewInit {
 
   // ==================== GRÁFICOS ====================
 
-  loadFlotaChart() {
-    // ✅ Ahora usa el historial para obtener el último estado de cada vehículo
-    this.historialService.list().subscribe(data => {
-      this.destruir(this.graficoFlota);
+loadFlotaChart() {
+  this.historialService.list().subscribe(data => {
+    this.destruir(this.graficoFlota);
 
-      if (!data || data.length === 0) {
-        this.totalHistorialFlota = 0;
-        return;
-      }
+    if (!data || data.length === 0) {
+      this.totalHistorialFlota = 0;
+      return;
+    }
 
-      // Agrupar por vehículo y quedarse con el registro más reciente de cada uno
-      const ultimoEstadoPorVehiculo: Record<number, string> = {};
+    // Quedarse con el último estado de cada vehículo (sin filtrar por año)
+    const ultimoEstadoPorVehiculo: Record<number, string> = {};
 
-      data
-        .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-        .forEach(h => {
-          if (h.vehiculo?.id) {
-            ultimoEstadoPorVehiculo[h.vehiculo.id] = h.estado;
-          }
-        });
-
-      const estados = Object.values(ultimoEstadoPorVehiculo);
-      this.totalHistorialFlota = estados.length;
-
-      if (estados.length === 0) return;
-
-      // Contar cuántos vehículos hay en cada estado
-      const counts: Record<string, number> = {};
-      estados.forEach(estado => {
-        const key = estado || 'Sin estado';
-        counts[key] = (counts[key] || 0) + 1;
-      });
-
-      this.graficoFlota = new Chart(this.chartFlota.nativeElement, {
-        type: 'doughnut',
-        data: {
-          labels: Object.keys(counts),
-          datasets: [{
-            data: Object.values(counts),
-            backgroundColor: this.getColores(Object.keys(counts).length)
-          }]
+    data
+      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+      .forEach(h => {
+        if (h.vehiculo?.id) {
+          ultimoEstadoPorVehiculo[h.vehiculo.id] = h.estado;
         }
       });
+
+    const estados = Object.values(ultimoEstadoPorVehiculo);
+    this.totalHistorialFlota = estados.length;
+
+    if (estados.length === 0) return;
+
+    const counts: Record<string, number> = {};
+    estados.forEach(estado => {
+      const key = estado || 'Sin estado';
+      counts[key] = (counts[key] || 0) + 1;
     });
-  }
+
+    this.graficoFlota = new Chart(this.chartFlota.nativeElement, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{
+          data: Object.values(counts),
+          backgroundColor: this.getColores(Object.keys(counts).length)
+        }]
+      }
+    });
+  });
+}
 
   loadSolicitudesDestinoChart() {
     this.solicitudesService.list().subscribe(data => {
