@@ -53,7 +53,11 @@ export class EstadoCarrosComponent implements OnInit {
   itemsAsignacion = 3;
   asignacionIntentado = false;
   errorAsignacion = '';
-
+// ── Variables string para fechas ───────────────────
+fechaHistorialInput: string = '';
+fechaInicioInput: string = '';
+fechaFinInput: string = '';
+anioVehiculoIntentado: boolean = false; // para marcar año obligatorio
   // ── Auth ───────────────────────────────────────────
   role: string | null = null;
 
@@ -86,36 +90,35 @@ export class EstadoCarrosComponent implements OnInit {
   // VEHÍCULOS
   // ══════════════════════════════════════════════════
 
-  guardarVehiculo() {
-    this.vehiculoIntentado = true;
-    this.errorVehiculo = '';
+guardarVehiculo() {
+  this.vehiculoIntentado = true;
+  this.errorVehiculo = '';
 
-    if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim()) {
-      this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+  if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim() || !this.vehiculo.anio) {
+    this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
+  }
+
+  if (!this.vehiculo.id) {
+    const placaExiste = this.vehiculos.some(
+      v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
+    );
+    if (placaExiste) {
+      this.errorVehiculo = '⚠️ Ya existe un vehículo con esa placa. Verifica e intenta de nuevo.';
       return;
     }
-
-    // ✅ Validar placa duplicada solo al crear
-    if (!this.vehiculo.id) {
-      const placaExiste = this.vehiculos.some(
-        v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
-      );
-      if (placaExiste) {
-        this.errorVehiculo = '⚠️ Ya existe un vehículo con esa placa. Verifica e intenta de nuevo.';
-        return;
-      }
-    }
-
-    const accion$ = this.vehiculo.id
-      ? this.vehiculosService.update(this.vehiculo)
-      : this.vehiculosService.insert(this.vehiculo);
-
-    accion$.subscribe(() => {
-      alert(this.vehiculo.id ? '✅ Vehículo actualizado' : '✅ Vehículo registrado');
-      this.limpiarVehiculo();
-      this.vehiculosService.list().subscribe(v => (this.vehiculos = v));
-    });
   }
+
+  const accion$ = this.vehiculo.id
+    ? this.vehiculosService.update(this.vehiculo)
+    : this.vehiculosService.insert(this.vehiculo);
+
+  accion$.subscribe(() => {
+    alert(this.vehiculo.id ? '✅ Vehículo actualizado' : '✅ Vehículo registrado');
+    this.limpiarVehiculo();
+    this.vehiculosService.list().subscribe(v => (this.vehiculos = v));
+  });
+}
 
   editarVehiculo(v: Vehiculo) {
     this.vehiculo = JSON.parse(JSON.stringify(v));
@@ -153,40 +156,44 @@ export class EstadoCarrosComponent implements OnInit {
   // ══════════════════════════════════════════════════
 
   guardarHistorial() {
-    this.historialIntentado = true;
-    this.errorHistorial = '';
+  this.historialIntentado = true;
+  this.errorHistorial = '';
 
-    if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.historial.fecha) {
-      this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-      return;
-    }
-
-    if (typeof this.historial.vehiculo.id === 'string') {
-      this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
-    }
-
-    const accion$ = this.historial.id
-      ? this.historialService.update(this.historial)
-      : this.historialService.insert(this.historial);
-
-    accion$.subscribe({
-      next: () => {
-        alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
-        this.limpiarHistorial();
-        this.historialService.list().subscribe(h => (this.historiales = h));
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar historial:', err);
-        alert('Ocurrió un error al registrar el historial.');
-      }
-    });
+  if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.fechaHistorialInput) {
+    this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
   }
 
-  editarHistorial(h: HistorialEstadoVehiculo) {
-    this.historial = JSON.parse(JSON.stringify(h));
-    this.historialIntentado = false;
-    this.errorHistorial = '';
+  if (typeof this.historial.vehiculo.id === 'string') {
+    this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
   }
+
+  this.historial.fecha = new Date(this.fechaHistorialInput) as any;
+
+  const accion$ = this.historial.id
+    ? this.historialService.update(this.historial)
+    : this.historialService.insert(this.historial);
+
+  accion$.subscribe({
+    next: () => {
+      alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
+      this.limpiarHistorial();
+      this.historialService.list().subscribe(h => (this.historiales = h));
+    },
+    error: (err) => {
+      console.error('❌ Error al registrar historial:', err);
+      alert('Ocurrió un error al registrar el historial.');
+    }
+  });
+}
+
+editarHistorial(h: HistorialEstadoVehiculo) {
+  this.historial = JSON.parse(JSON.stringify(h));
+  const d = new Date(h.fecha);
+  this.fechaHistorialInput = d.toISOString().split('T')[0];
+  this.historialIntentado = false;
+  this.errorHistorial = '';
+}
 
   eliminarHistorial(id: number) {
     if (confirm('¿Eliminar historial?')) {
@@ -203,87 +210,88 @@ export class EstadoCarrosComponent implements OnInit {
     );
   }
 
-  limpiarHistorial() {
-    this.historial = new HistorialEstadoVehiculo();
-    this.vehiculoSeleccionadoId = 0;
-    this.historialIntentado = false;
-    this.errorHistorial = '';
-  }
+limpiarHistorial() {
+  this.historial = new HistorialEstadoVehiculo();
+  this.vehiculoSeleccionadoId = 0;
+  this.fechaHistorialInput = '';
+  this.historialIntentado = false;
+  this.errorHistorial = '';
+}
 
   // ══════════════════════════════════════════════════
   // ASIGNACIONES
   // ══════════════════════════════════════════════════
 
-  guardarAsignacion() {
-    this.asignacionIntentado = true;
-    this.errorAsignacion = '';
+guardarAsignacion() {
+  this.asignacionIntentado = true;
+  this.errorAsignacion = '';
 
-    if (
-      !this.solicitudSeleccionadaId ||
-      !this.vehiculoAsignadoId ||
-      !this.conductorSeleccionadoId ||
-      !this.asignacion.estado?.trim() ||
-      !this.asignacion.inicio ||
-      !this.asignacion.fin
-    ) {
-      this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-      return;
-    }
-
-    const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
-    const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
-    const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
-
-    if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
-      this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
-      return;
-    }
-
-    // ✅ Buscar el último estado del vehículo en el historial
-    const historialDelVehiculo = this.historiales
-      .filter(h => h.vehiculo?.id === vehiculoSeleccionado.id)
-      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-
-    const ultimoEstado = historialDelVehiculo[0]?.estado?.toUpperCase();
-    const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
-
-    if (ultimoEstado && estadosNoPermitidos.includes(ultimoEstado)) {
-      this.errorAsignacion = `⚠️ El vehículo está en estado "${historialDelVehiculo[0].estado}" y no está disponible. Solo se pueden asignar vehículos en estado ACTIVO.`;
-      return;
-    }
-
-    this.asignacion.solicitud = solicitudSeleccionada;
-    this.asignacion.vehiculo = vehiculoSeleccionado;
-    this.asignacion.conductor = {
-      id: conductorSeleccionado.id,
-      username: conductorSeleccionado.username
-    };
-    this.asignacion.inicio = new Date(this.asignacion.inicio);
-    this.asignacion.fin = new Date(this.asignacion.fin);
-
-    const accion$ = this.asignacion.id
-      ? this.asignacionesService.update(this.asignacion)
-      : this.asignacionesService.insert(this.asignacion);
-
-    accion$.subscribe({
-      next: () => {
-        alert(this.asignacion.id ? '✅ Asignación actualizada' : '✅ Asignación registrada');
-        this.limpiarAsignacion();
-        this.cargarTodo();
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar asignación:', err);
-        alert('Ocurrió un error al registrar la asignación.');
-      }
-    });
+  if (
+    !this.solicitudSeleccionadaId ||
+    !this.vehiculoAsignadoId ||
+    !this.conductorSeleccionadoId ||
+    !this.asignacion.estado?.trim() ||
+    !this.fechaInicioInput ||
+    !this.fechaFinInput
+  ) {
+    this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
   }
 
-  editarAsignacion(a: Asignacion) {
-    this.asignacion = JSON.parse(JSON.stringify(a));
-    this.asignacionIntentado = false;
-    this.errorAsignacion = '';
+  const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
+  const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
+  const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
+
+  if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
+    this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
+    return;
   }
 
+  const historialDelVehiculo = this.historiales
+    .filter(h => h.vehiculo?.id === vehiculoSeleccionado.id)
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+  const ultimoEstado = historialDelVehiculo[0]?.estado?.toUpperCase();
+  const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
+
+  if (ultimoEstado && estadosNoPermitidos.includes(ultimoEstado)) {
+    this.errorAsignacion = `⚠️ El vehículo está en estado "${historialDelVehiculo[0].estado}" y no está disponible. Solo se pueden asignar vehículos en estado ACTIVO.`;
+    return;
+  }
+
+  this.asignacion.solicitud = solicitudSeleccionada;
+  this.asignacion.vehiculo = vehiculoSeleccionado;
+  this.asignacion.conductor = {
+    id: conductorSeleccionado.id,
+    username: conductorSeleccionado.username
+  };
+  this.asignacion.inicio = new Date(this.fechaInicioInput);
+  this.asignacion.fin = new Date(this.fechaFinInput);
+
+  const accion$ = this.asignacion.id
+    ? this.asignacionesService.update(this.asignacion)
+    : this.asignacionesService.insert(this.asignacion);
+
+  accion$.subscribe({
+    next: () => {
+      alert(this.asignacion.id ? '✅ Asignación actualizada' : '✅ Asignación registrada');
+      this.limpiarAsignacion();
+      this.cargarTodo();
+    },
+    error: (err) => {
+      console.error('❌ Error al registrar asignación:', err);
+      alert('Ocurrió un error al registrar la asignación.');
+    }
+  });
+}
+
+editarAsignacion(a: Asignacion) {
+  this.asignacion = JSON.parse(JSON.stringify(a));
+  this.fechaInicioInput = new Date(a.inicio).toISOString().split('T')[0];
+  this.fechaFinInput = new Date(a.fin).toISOString().split('T')[0];
+  this.asignacionIntentado = false;
+  this.errorAsignacion = '';
+}
   eliminarAsignacion(id: number) {
     if (confirm('¿Eliminar asignación?')) {
       this.asignacionesService.delete(id).subscribe(() => this.cargarTodo());
@@ -299,14 +307,16 @@ export class EstadoCarrosComponent implements OnInit {
     );
   }
 
-  limpiarAsignacion() {
-    this.asignacion = new Asignacion();
-    this.solicitudSeleccionadaId = 0;
-    this.vehiculoAsignadoId = 0;
-    this.conductorSeleccionadoId = 0;
-    this.asignacionIntentado = false;
-    this.errorAsignacion = '';
-  }
+limpiarAsignacion() {
+  this.asignacion = new Asignacion();
+  this.solicitudSeleccionadaId = 0;
+  this.vehiculoAsignadoId = 0;
+  this.conductorSeleccionadoId = 0;
+  this.fechaInicioInput = '';
+  this.fechaFinInput = '';
+  this.asignacionIntentado = false;
+  this.errorAsignacion = '';
+}
 
   // ══════════════════════════════════════════════════
   // PAGINACIÓN

@@ -52,8 +52,14 @@
         </div>
 
         <div class="form-group">
-          <label>Año</label>
-          <input placeholder="Ej. 2022" type="number" [(ngModel)]="vehiculo.anio" name="anio" />
+          <label>Año <span class="required">*</span></label>
+          <input
+            placeholder="Ej. 2022"
+            type="number"
+            [(ngModel)]="vehiculo.anio"
+            name="anio"
+            [class.invalid]="!vehiculo.anio && vehiculoIntentado"
+          />
         </div>
 
       </div>
@@ -73,33 +79,32 @@
       (input)="buscarVehiculo()"
       style="margin: 1rem 0;"
     />
-<table>
-  <thead>
-    <tr>
-      <th>Placa</th>
-      <th>Tipo</th>
-      <th>Marca</th>
-      <th>Modelo</th>
-      <th>Año</th>
-      <th *ngIf="role !== 'GERENTE'">Acciones</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr *ngFor="let v of vehiculos | slice:(paginaVehiculo-1)*itemsVehiculo:(paginaVehiculo*itemsVehiculo)">
-      <td>{{ v.placa }}</td>
-      <td>{{ v.tipo || '—' }}</td>
-      <td>{{ v.marca || '—' }}</td>
-      <td>{{ v.modelo || '—' }}</td>
-      <td>{{ v.anio || '—' }}</td>
-      <td *ngIf="role !== 'GERENTE'">
-        <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
-        <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
-      </td>
-    </tr>
-  </tbody>
-</table>
-    
 
+    <table>
+      <thead>
+        <tr>
+          <th>Placa</th>
+          <th>Tipo</th>
+          <th>Marca</th>
+          <th>Modelo</th>
+          <th>Año</th>
+          <th *ngIf="role !== 'GERENTE'">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let v of vehiculos | slice:(paginaVehiculo-1)*itemsVehiculo:(paginaVehiculo*itemsVehiculo)">
+          <td>{{ v.placa }}</td>
+          <td>{{ v.tipo || '—' }}</td>
+          <td>{{ v.marca || '—' }}</td>
+          <td>{{ v.modelo || '—' }}</td>
+          <td>{{ v.anio || '—' }}</td>
+          <td *ngIf="role !== 'GERENTE'">
+            <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
+            <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <div class="paginacion">
       <button [disabled]="paginaVehiculo === 1" (click)="cambiarPaginaVehiculo(-1)">⬅️</button>
@@ -151,9 +156,9 @@
           <label>Fecha <span class="required">*</span></label>
           <input
             type="date"
-            [(ngModel)]="historial.fecha"
+            [(ngModel)]="fechaHistorialInput"
             name="fecha"
-            [class.invalid]="!historial.fecha && historialIntentado"
+            [class.invalid]="!fechaHistorialInput && historialIntentado"
           />
         </div>
 
@@ -288,9 +293,9 @@
           <label>Fecha inicio <span class="required">*</span></label>
           <input
             type="date"
-            [(ngModel)]="asignacion.inicio"
+            [(ngModel)]="fechaInicioInput"
             name="inicio"
-            [class.invalid]="!asignacion.inicio && asignacionIntentado"
+            [class.invalid]="!fechaInicioInput && asignacionIntentado"
           />
         </div>
 
@@ -298,9 +303,9 @@
           <label>Fecha fin <span class="required">*</span></label>
           <input
             type="date"
-            [(ngModel)]="asignacion.fin"
+            [(ngModel)]="fechaFinInput"
             name="fin"
-            [class.invalid]="!asignacion.fin && asignacionIntentado"
+            [class.invalid]="!fechaFinInput && asignacionIntentado"
           />
         </div>
 
