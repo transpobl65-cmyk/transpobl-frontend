@@ -12,6 +12,8 @@
   font-size: 1.2rem;
   color: #f59e0b;
   margin-bottom: 1rem;
+  border-bottom: 1px solid #374151;
+  padding-bottom: 0.5rem;
 }
 
 .form-grid {

@@ -90,13 +90,12 @@ export class EstadoCarrosComponent implements OnInit {
     this.vehiculoIntentado = true;
     this.errorVehiculo = '';
 
-    // ✅ Validar campos obligatorios
-    if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim() || !this.vehiculo.estadoActual?.trim()) {
+    if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim()) {
       this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
       return;
     }
 
-    // ✅ Validar placa duplicada (solo al crear, no al editar)
+    // ✅ Validar placa duplicada solo al crear
     if (!this.vehiculo.id) {
       const placaExiste = this.vehiculos.some(
         v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
@@ -157,18 +156,8 @@ export class EstadoCarrosComponent implements OnInit {
     this.historialIntentado = true;
     this.errorHistorial = '';
 
-    // ✅ Validar campos obligatorios
     if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.historial.fecha) {
       this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-      return;
-    }
-
-    // ✅ Validar que el vehículo no esté en Mantenimiento
-    const vehiculoElegido = this.vehiculos.find(
-      v => v.id === Number(this.historial.vehiculo.id)
-    );
-    if (vehiculoElegido?.estadoActual === 'MANTENIMIENTO') {
-      this.errorHistorial = '⚠️ No se puede registrar historial: el vehículo está en Mantenimiento.';
       return;
     }
 
@@ -229,7 +218,6 @@ export class EstadoCarrosComponent implements OnInit {
     this.asignacionIntentado = true;
     this.errorAsignacion = '';
 
-    // ✅ Validar campos obligatorios
     if (
       !this.solicitudSeleccionadaId ||
       !this.vehiculoAsignadoId ||
@@ -251,10 +239,16 @@ export class EstadoCarrosComponent implements OnInit {
       return;
     }
 
-    // ✅ Validar que el vehículo esté ACTIVO
+    // ✅ Buscar el último estado del vehículo en el historial
+    const historialDelVehiculo = this.historiales
+      .filter(h => h.vehiculo?.id === vehiculoSeleccionado.id)
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+    const ultimoEstado = historialDelVehiculo[0]?.estado?.toUpperCase();
     const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
-    if (estadosNoPermitidos.includes(vehiculoSeleccionado.estadoActual?.toUpperCase())) {
-      this.errorAsignacion = `⚠️ El vehículo seleccionado está en estado "${vehiculoSeleccionado.estadoActual}" y no está disponible. Solo se pueden asignar vehículos en estado ACTIVO.`;
+
+    if (ultimoEstado && estadosNoPermitidos.includes(ultimoEstado)) {
+      this.errorAsignacion = `⚠️ El vehículo está en estado "${historialDelVehiculo[0].estado}" y no está disponible. Solo se pueden asignar vehículos en estado ACTIVO.`;
       return;
     }
 

@@ -56,22 +56,6 @@
           <input placeholder="Ej. 2022" type="number" [(ngModel)]="vehiculo.anio" name="anio" />
         </div>
 
-        <div class="form-group">
-          <label>Estado actual <span class="required">*</span></label>
-          <select
-            [(ngModel)]="vehiculo.estadoActual"
-            name="estadoActual"
-            [class.invalid]="!vehiculo.estadoActual && vehiculoIntentado"
-          >
-            <option value="" disabled selected>Selecciona un estado</option>
-            <option value="ACTIVO">Activo</option>
-            <option value="MANTENIMIENTO">En mantenimiento</option>
-            <option value="ASIGNADO">Asignado</option>
-            <option value="EN OPERACION">En operación</option>
-            <option value="NO DISPONIBLE">No disponible</option>
-          </select>
-        </div>
-
       </div>
 
       <p class="error-msg" *ngIf="errorVehiculo">{{ errorVehiculo }}</p>
@@ -97,7 +81,6 @@
           <th>Tipo</th>
           <th>Marca</th>
           <th>Modelo</th>
-          <th>Estado</th>
           <th *ngIf="role !== 'GERENTE'">Acciones</th>
         </tr>
       </thead>
@@ -105,17 +88,8 @@
         <tr *ngFor="let v of vehiculos | slice:(paginaVehiculo-1)*itemsVehiculo:(paginaVehiculo*itemsVehiculo)">
           <td>{{ v.placa }}</td>
           <td>{{ v.tipo || '—' }}</td>
-          <td>{{ v.marca }}</td>
-          <td>{{ v.modelo }}</td>
-          <td>
-            <span class="badge" [ngClass]="{
-              'badge-green':  v.estadoActual === 'ACTIVO',
-              'badge-orange': v.estadoActual === 'MANTENIMIENTO',
-              'badge-blue':   v.estadoActual === 'ASIGNADO',
-              'badge-purple': v.estadoActual === 'EN OPERACION',
-              'badge-red':    v.estadoActual === 'NO DISPONIBLE'
-            }">{{ v.estadoActual }}</span>
-          </td>
+          <td>{{ v.marca || '—' }}</td>
+          <td>{{ v.modelo || '—' }}</td>
           <td *ngIf="role !== 'GERENTE'">
             <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
             <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
@@ -149,19 +123,25 @@
           >
             <option value="">Seleccione el vehículo</option>
             <option *ngFor="let v of vehiculos" [value]="v.id">
-              {{ v.placa }} - {{ v.marca }} ({{ v.estadoActual }})
+              {{ v.placa }} - {{ v.marca }}
             </option>
           </select>
         </div>
 
         <div class="form-group">
           <label>Estado actual <span class="required">*</span></label>
-          <input
-            placeholder="Ej. En ruta, Mantenimiento..."
+          <select
             [(ngModel)]="historial.estado"
             name="estado"
             [class.invalid]="!historial.estado && historialIntentado"
-          />
+          >
+            <option value="" disabled selected>Selecciona un estado</option>
+            <option value="ACTIVO">Activo</option>
+            <option value="MANTENIMIENTO">En mantenimiento</option>
+            <option value="ASIGNADO">Asignado</option>
+            <option value="EN OPERACION">En operación</option>
+            <option value="NO DISPONIBLE">No disponible</option>
+          </select>
         </div>
 
         <div class="form-group">
@@ -214,7 +194,15 @@
       <tbody>
         <tr *ngFor="let h of historiales | slice:(paginaHistorial-1)*itemsHistorial:(paginaHistorial*itemsHistorial)">
           <td>{{ h.vehiculo?.placa }}</td>
-          <td>{{ h.estado }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'badge-green':  h.estado === 'ACTIVO',
+              'badge-orange': h.estado === 'MANTENIMIENTO',
+              'badge-blue':   h.estado === 'ASIGNADO',
+              'badge-purple': h.estado === 'EN OPERACION',
+              'badge-red':    h.estado === 'NO DISPONIBLE'
+            }">{{ h.estado }}</span>
+          </td>
           <td>{{ h.fecha | date: 'dd/MM/yyyy' }}</td>
           <td>{{ h.notas || '—' }}</td>
           <td *ngIf="role !== 'GERENTE'">
@@ -264,7 +252,7 @@
           >
             <option value="">Seleccione un vehículo</option>
             <option *ngFor="let v of vehiculos" [value]="v.id">
-              {{ v.placa }} - {{ v.marca }} ({{ v.estadoActual }})
+              {{ v.placa }} - {{ v.marca }}
             </option>
           </select>
         </div>
