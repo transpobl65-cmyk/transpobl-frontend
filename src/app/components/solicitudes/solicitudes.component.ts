@@ -167,12 +167,50 @@ guardarSolicitud() {
 
   accion$.subscribe({
     next: () => {
-      alert(this.solicitud.id ? '✅ Solicitud actualizada.' : '✅ Solicitud registrada.');
-      this.solicitud = new Solicitud();
-      this.fechaSalidaInput = '';
-      this.solicitudIntentada = false;
-      this.errorSolicitud = '';
-      this.cargarDatos();
+      // ✅ Actualizar historial del vehículo a ASIGNADO automáticamente
+      if (!this.solicitud.id) { // solo al crear, no al editar
+        const historialExistente = this.historiales.find(
+          h => h.vehiculo?.id === this.solicitud.vehiculo.id
+        );
+
+        const finalizarGuardado = () => {
+          alert('✅ Solicitud registrada.');
+          this.solicitud = new Solicitud();
+          this.fechaSalidaInput = '';
+          this.solicitudIntentada = false;
+          this.errorSolicitud = '';
+          this.cargarDatos();
+        };
+
+        if (historialExistente) {
+          const historialActualizado = {
+            ...historialExistente,
+            estado: 'ASIGNADO',
+            fecha: new Date(this.fechaSalidaInput),
+            notas: 'Asignado automáticamente al registrar solicitud'
+          };
+          this.historialService.update(historialActualizado).subscribe(() => {
+            finalizarGuardado();
+          });
+        } else {
+          const nuevoHistorial = {
+            vehiculo: { id: this.solicitud.vehiculo.id },
+            estado: 'ASIGNADO',
+            fecha: new Date(this.fechaSalidaInput),
+            notas: 'Asignado automáticamente al registrar solicitud'
+          };
+          this.historialService.insert(nuevoHistorial as any).subscribe(() => {
+            finalizarGuardado();
+          });
+        }
+      } else {
+        alert('✅ Solicitud actualizada.');
+        this.solicitud = new Solicitud();
+        this.fechaSalidaInput = '';
+        this.solicitudIntentada = false;
+        this.errorSolicitud = '';
+        this.cargarDatos();
+      }
     },
     error: (err) => {
       console.error('❌ Error al guardar solicitud:', err);
@@ -180,8 +218,6 @@ guardarSolicitud() {
     }
   });
 }
-
-
 
 editarSolicitud(s: Solicitud) {
   this.solicitud = JSON.parse(JSON.stringify(s));
@@ -191,12 +227,34 @@ editarSolicitud(s: Solicitud) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-  eliminarSolicitud(id: number) {
-    if (confirm('¿Eliminar esta solicitud?')) {
-      this.solicitudesService.delete(id).subscribe(() => this.cargarDatos());
-    }
-  }
+eliminarSolicitud(id: number) {
+  if (!confirm('¿Eliminar esta solicitud?')) return;
 
+  const solicitudAEliminar = this.solicitudes.find(s => s.id === id);
+
+  this.solicitudesService.delete(id).subscribe(() => {
+    if (solicitudAEliminar?.vehiculo?.id) {
+      const historialExistente = this.historiales.find(
+        h => h.vehiculo?.id === solicitudAEliminar.vehiculo.id
+      );
+      if (historialExistente) {
+        const historialActualizado = {
+          ...historialExistente,
+          estado: 'ACTIVO',
+          fecha: new Date(),
+          notas: 'Disponible automáticamente al eliminar solicitud'
+        };
+        this.historialService.update(historialActualizado).subscribe(() => {
+          this.cargarDatos();
+        });
+      } else {
+        this.cargarDatos();
+      }
+    } else {
+      this.cargarDatos();
+    }
+  });
+}
 cancelarSolicitud() {
   this.solicitud = new Solicitud();
   this.fechaSalidaInput = '';

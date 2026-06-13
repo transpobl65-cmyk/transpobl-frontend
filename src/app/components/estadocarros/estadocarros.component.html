@@ -232,7 +232,6 @@
 <!-- 🚚 SECCIÓN DE ASIGNACIONES -->
 <div class="card">
   <div class="card-head">Asignaciones Registrada al conductor</div>
-    
   <div class="card-body">
 
     <form (ngSubmit)="guardarAsignacion()" *ngIf="role !== 'GERENTE'">
@@ -244,10 +243,11 @@
             [(ngModel)]="solicitudSeleccionadaId"
             name="solicitud"
             [class.invalid]="!solicitudSeleccionadaId && asignacionIntentado"
+            (change)="onSolicitudSeleccionada()"
           >
             <option value="">Seleccione una solicitud</option>
             <option *ngFor="let s of solicitudes" [value]="s.id">
-              {{ s.cliente?.nombre }} - {{ s.destino }}
+              {{ s.cliente?.nombre }} - {{ s.destino }} ({{ s.fechaSalida | date:'dd/MM/yyyy' }})
             </option>
           </select>
         </div>
@@ -258,8 +258,9 @@
             [(ngModel)]="vehiculoAsignadoId"
             name="vehiculo"
             [class.invalid]="!vehiculoAsignadoId && asignacionIntentado"
+            disabled
           >
-            <option value="">Seleccione un vehículo</option>
+            <option value="">Se autocompleta al elegir solicitud</option>
             <option *ngFor="let v of vehiculos" [value]="v.id">
               {{ v.placa }} - {{ v.marca }}
             </option>
@@ -287,6 +288,7 @@
             [(ngModel)]="fechaInicioInput"
             name="inicio"
             [class.invalid]="!fechaInicioInput && asignacionIntentado"
+            readonly
           />
         </div>
 
