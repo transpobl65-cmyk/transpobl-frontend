@@ -155,7 +155,7 @@ guardarVehiculo() {
   // HISTORIAL
   // ══════════════════════════════════════════════════
 
-  guardarHistorial() {
+guardarHistorial() {
   this.historialIntentado = true;
   this.errorHistorial = '';
 
@@ -166,6 +166,17 @@ guardarVehiculo() {
 
   if (typeof this.historial.vehiculo.id === 'string') {
     this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
+  }
+
+  // ✅ Validar que no exista ya un historial para ese vehículo (solo al crear)
+  if (!this.historial.id) {
+    const yaExiste = this.historiales.some(
+      h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
+    );
+    if (yaExiste) {
+      this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
+      return;
+    }
   }
 
   this.historial.fecha = new Date(this.fechaHistorialInput) as any;
