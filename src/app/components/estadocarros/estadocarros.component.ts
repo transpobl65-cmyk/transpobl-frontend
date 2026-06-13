@@ -157,72 +157,93 @@ export class EstadoCarrosComponent implements OnInit {
   // HISTORIAL
   // ══════════════════════════════════════════════════
 
-  guardarHistorial() {
-    this.historialIntentado = true;
-    this.errorHistorial = '';
+ guardarHistorial() {
+  this.historialIntentado = true;
+  this.errorHistorial = '';
 
-    if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.fechaHistorialInput) {
-      this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+  if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.fechaHistorialInput) {
+    this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
+  }
+
+  if (typeof this.historial.vehiculo.id === 'string') {
+    this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
+  }
+
+  // ✅ Validar duplicado solo al crear
+  if (!this.historial.id) {
+    const yaExiste = this.historiales.some(
+      h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
+    );
+    if (yaExiste) {
+      this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
+      return;
+    }
+  }
+
+  // ✅ Al editar
+  if (this.historial.id) {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    // ✅ Parsear fecha ingresada por el usuario
+    const [fAnio, fMes, fDia] = this.fechaHistorialInput.split('-').map(Number);
+    const fechaIngresada = new Date(fAnio, fMes - 1, fDia);
+
+    // ✅ Buscar asignación activa del vehículo — solo las que aún no terminaron
+    const asignacionActiva = this.asignaciones.find(a => {
+      if (a.vehiculo?.id !== Number(this.historial.vehiculo.id)) return false;
+      const finStr = a.fin.toString().split('T')[0];
+      const [anio, mes, dia] = finStr.split('-').map(Number);
+      const fechaFin = new Date(anio, mes - 1, dia);
+      return hoy < fechaFin; // ✅ solo activas hoy
+    });
+
+    if (asignacionActiva) {
+      const finStr = asignacionActiva.fin.toString().split('T')[0];
+      const [anio, mes, dia] = finStr.split('-').map(Number);
+      const fechaFin = new Date(anio, mes - 1, dia);
+      const finFormateada = fechaFin.toLocaleDateString('es-PE');
+      this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
       return;
     }
 
-    if (typeof this.historial.vehiculo.id === 'string') {
-      this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
-    }
+    // ✅ Buscar la última asignación del vehículo para validar fecha mínima
+    const ultimaAsignacion = this.asignaciones
+      .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
+      .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
 
-    // ✅ Validar duplicado solo al crear
-    if (!this.historial.id) {
-      const yaExiste = this.historiales.some(
-        h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
-      );
-      if (yaExiste) {
-        this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
+    if (ultimaAsignacion) {
+      const inicioStr = ultimaAsignacion.inicio.toString().split('T')[0];
+      const [iAnio, iMes, iDia] = inicioStr.split('-').map(Number);
+      const fechaInicio = new Date(iAnio, iMes - 1, iDia);
+
+      if (fechaIngresada <= fechaInicio) {
+        const inicioFormateada = fechaInicio.toLocaleDateString('es-PE');
+        this.errorHistorial = `⚠️ La fecha no puede ser anterior o igual a la fecha de inicio de la última asignación (${inicioFormateada}).`;
         return;
       }
     }
-
-    // ✅ Al editar, verificar si hay asignación activa HOY
-    if (this.historial.id) {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-
-      // ✅ Solo buscar asignaciones que aún estén activas HOY
-      const asignacionActiva = this.asignaciones.find(a => {
-        if (a.vehiculo?.id !== Number(this.historial.vehiculo.id)) return false;
-        const finStr = a.fin.toString().split('T')[0];
-        const [anio, mes, dia] = finStr.split('-').map(Number);
-        const fechaFin = new Date(anio, mes - 1, dia);
-        return hoy < fechaFin;
-      });
-
-      if (asignacionActiva) {
-        const finStr = asignacionActiva.fin.toString().split('T')[0];
-        const [anio, mes, dia] = finStr.split('-').map(Number);
-        const fechaFin = new Date(anio, mes - 1, dia);
-        const finFormateada = fechaFin.toLocaleDateString('es-PE');
-        this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
-        return;
-      }
-    }
-
-    this.historial.fecha = new Date(this.fechaHistorialInput) as any;
-
-    const accion$ = this.historial.id
-      ? this.historialService.update(this.historial)
-      : this.historialService.insert(this.historial);
-
-    accion$.subscribe({
-      next: () => {
-        alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
-        this.limpiarHistorial();
-        this.historialService.list().subscribe(h => (this.historiales = h));
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar historial:', err);
-        alert('Ocurrió un error al registrar el historial.');
-      }
-    });
   }
+
+  this.historial.fecha = new Date(this.fechaHistorialInput) as any;
+
+  const accion$ = this.historial.id
+    ? this.historialService.update(this.historial)
+    : this.historialService.insert(this.historial);
+
+  accion$.subscribe({
+    next: () => {
+      alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
+      this.limpiarHistorial();
+      this.historialService.list().subscribe(h => (this.historiales = h));
+    },
+    error: (err) => {
+      console.error('❌ Error al registrar historial:', err);
+      alert('Ocurrió un error al registrar el historial.');
+    }
+  });
+}
 
   editarHistorial(h: HistorialEstadoVehiculo) {
     this.historial = JSON.parse(JSON.stringify(h));
