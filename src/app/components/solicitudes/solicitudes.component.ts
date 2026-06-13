@@ -100,6 +100,17 @@ guardarCliente() {
     return;
   }
 
+  // ✅ Validar RUC/DNI duplicado solo al crear
+  if (!this.cliente.id && this.cliente.rucDni?.trim()) {
+    const dniExiste = this.clientes.some(
+      c => c.rucDni?.trim().toLowerCase() === this.cliente.rucDni.trim().toLowerCase()
+    );
+    if (dniExiste) {
+      this.errorCliente = '⚠️ Ya existe un cliente con ese RUC/DNI. Verifica e intenta de nuevo.';
+      return;
+    }
+  }
+
   const accion$ = this.cliente.id
     ? this.clientesService.update(this.cliente)
     : this.clientesService.insert(this.cliente);
@@ -112,7 +123,6 @@ guardarCliente() {
     this.cargarDatos();
   });
 }
-
   editarCliente(c: Cliente) {
     this.cliente = JSON.parse(JSON.stringify(c));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -145,16 +155,38 @@ guardarSolicitud() {
     return;
   }
 
-  // ✅ Validar estado del vehículo desde historial
+  // ✅ Validar que el vehículo no esté ya en otra solicitud activa (solo al crear)
+  if (!this.solicitud.id) {
+    const vehiculoEnSolicitud = this.solicitudes.some(
+      s => s.vehiculo?.id === this.solicitud.vehiculo.id
+    );
+    if (vehiculoEnSolicitud) {
+      this.errorSolicitud = '⚠️ El vehículo seleccionado ya fue registrado en una solicitud previa. Selecciona otro vehículo.';
+      return;
+    }
+  }
+
+  // ✅ Validar estado del vehículo desde historial con mensajes específicos
   const historialVehiculo = this.historiales
     .filter(h => h.vehiculo?.id === this.solicitud.vehiculo.id)
     .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
 
   const ultimoEstado = historialVehiculo[0]?.estado?.toUpperCase();
-  const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
 
-  if (ultimoEstado && estadosNoPermitidos.includes(ultimoEstado)) {
-    this.errorSolicitud = `⚠️ El vehículo está en estado "${historialVehiculo[0].estado}" y no está disponible para una nueva solicitud.`;
+  if (ultimoEstado === 'MANTENIMIENTO') {
+    this.errorSolicitud = '⚠️ Este vehículo está en Mantenimiento y no está disponible para una solicitud.';
+    return;
+  }
+  if (ultimoEstado === 'ASIGNADO') {
+    this.errorSolicitud = '⚠️ Este vehículo ya está Asignado a otra solicitud. Selecciona otro vehículo.';
+    return;
+  }
+  if (ultimoEstado === 'EN OPERACION') {
+    this.errorSolicitud = '⚠️ Este vehículo está En Operación y no está disponible para una nueva solicitud.';
+    return;
+  }
+  if (ultimoEstado === 'NO DISPONIBLE') {
+    this.errorSolicitud = '⚠️ Este vehículo está marcado como No Disponible. Selecciona otro vehículo.';
     return;
   }
 
@@ -167,8 +199,8 @@ guardarSolicitud() {
 
   accion$.subscribe({
     next: () => {
-      // ✅ Actualizar historial del vehículo a ASIGNADO automáticamente
-      if (!this.solicitud.id) { // solo al crear, no al editar
+      // ✅ Actualizar historial del vehículo a ASIGNADO solo al crear
+      if (!this.solicitud.id) {
         const historialExistente = this.historiales.find(
           h => h.vehiculo?.id === this.solicitud.vehiculo.id
         );
@@ -218,7 +250,6 @@ guardarSolicitud() {
     }
   });
 }
-
 editarSolicitud(s: Solicitud) {
   this.solicitud = JSON.parse(JSON.stringify(s));
   this.fechaSalidaInput = new Date(s.fechaSalida).toISOString().split('T')[0];
