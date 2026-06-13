@@ -94,7 +94,6 @@
         </tr>
       </tbody>
     </table>
-
     <div class="paginacion">
       <button [disabled]="paginaCliente === 1" (click)="cambiarPaginaCliente(-1)">⬅️</button>
       <span>Página {{ paginaCliente }} de {{ totalPaginasClientes }}</span>
@@ -219,8 +218,18 @@
           <td>{{ s.precio | number:'1.2-2' }}</td>
           <td>{{ s.fechaSalida | date:'dd/MM/yyyy' }}</td>
           <td *ngIf="role !== 'GERENTE'">
-            <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
-            <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
+            <!-- ✅ Si ya finalizó → solo historial, sin botones -->
+            <span
+              *ngIf="yaFinalizo(s.fechaSalida)"
+              style="color:#64748b; font-size:0.8rem; font-style:italic;"
+            >
+              📁 Historial
+            </span>
+            <!-- ✅ Si aún vigente → botones normales -->
+            <ng-container *ngIf="!yaFinalizo(s.fechaSalida)">
+              <button class="btn-editar" (click)="editarSolicitud(s)">✏️</button>
+              <button class="btn-eliminar" (click)="eliminarSolicitud(s.id)">🗑️</button>
+            </ng-container>
           </td>
         </tr>
       </tbody>
