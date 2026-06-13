@@ -84,39 +84,63 @@ export class GastosConductorComponent implements OnInit {
     }
   }
 
-  guardarGasto() {
-    this.gastoIntentado = true;
-    this.errorGasto = '';
+guardarGasto() {
+  this.gastoIntentado = true;
+  this.errorGasto = '';
 
-    if (
-      !this.gasto.asignacion?.id ||
-      !this.gasto.tipo?.trim() ||
-      !this.gasto.proveedor?.trim() ||
-      !this.gasto.comprobante?.trim() ||
-      !(this.gasto.monto > 0) ||
-      !this.fechaInput
-    ) {
-      this.errorGasto = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-      return;
-    }
-
-    this.gasto.fecha = new Date(this.fechaInput) as any;
-    this.gasto.conductor.username = this.conductorUsername;
-
-    const accion$ = this.gasto.id
-      ? this.gastosService.update(this.gasto)
-      : this.gastosService.insert(this.gasto);
-
-    accion$.subscribe({
-      next: () => {
-        alert(this.gasto.id ? '✅ Gasto actualizado' : '✅ Gasto registrado');
-        this.limpiar();
-        this.cargarGastosConductor();
-      },
-      error: (err) => console.error('❌ Error al guardar gasto:', err)
-    });
+  if (
+    !this.gasto.asignacion?.id ||
+    !this.gasto.tipo?.trim() ||
+    !this.gasto.proveedor?.trim() ||
+    !this.gasto.comprobante?.trim() ||
+    !(this.gasto.monto > 0) ||
+    !this.fechaInput
+  ) {
+    this.errorGasto = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
   }
 
+  // ✅ Validar que la fecha del gasto esté entre inicio y fin de la asignación
+  const asignacionActual = this.asignaciones.find(
+    a => a.id === this.gasto.asignacion.id
+  );
+
+  if (asignacionActual) {
+    const [fAnio, fMes, fDia] = this.fechaInput.split('-').map(Number);
+    const fechaGasto = new Date(fAnio, fMes - 1, fDia);
+
+    const inicioStr = asignacionActual.inicio.toString().split('T')[0];
+    const [iAnio, iMes, iDia] = inicioStr.split('-').map(Number);
+    const fechaInicio = new Date(iAnio, iMes - 1, iDia);
+
+    const finStr = asignacionActual.fin.toString().split('T')[0];
+    const [fnAnio, fnMes, fnDia] = finStr.split('-').map(Number);
+    const fechaFin = new Date(fnAnio, fnMes - 1, fnDia);
+
+    if (fechaGasto < fechaInicio || fechaGasto > fechaFin) {
+      const inicioFormateada = fechaInicio.toLocaleDateString('es-PE');
+      const finFormateada = fechaFin.toLocaleDateString('es-PE');
+      this.errorGasto = `⚠️ La fecha del gasto debe estar entre ${inicioFormateada} y ${finFormateada}, que es el periodo de la asignación.`;
+      return;
+    }
+  }
+
+  this.gasto.fecha = new Date(this.fechaInput) as any;
+  this.gasto.conductor.username = this.conductorUsername;
+
+  const accion$ = this.gasto.id
+    ? this.gastosService.update(this.gasto)
+    : this.gastosService.insert(this.gasto);
+
+  accion$.subscribe({
+    next: () => {
+      alert(this.gasto.id ? '✅ Gasto actualizado' : '✅ Gasto registrado');
+      this.limpiar();
+      this.cargarGastosConductor();
+    },
+    error: (err) => console.error('❌ Error al guardar gasto:', err)
+  });
+}
   editar(g: GastosConductor) {
     this.gasto = JSON.parse(JSON.stringify(g));
     this.fechaInput = new Date(g.fecha).toISOString().split('T')[0];
