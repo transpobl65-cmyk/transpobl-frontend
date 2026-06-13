@@ -370,11 +370,39 @@ editarAsignacion(a: Asignacion) {
 }
 
 
-  eliminarAsignacion(id: number) {
-    if (confirm('¿Eliminar asignación?')) {
-      this.asignacionesService.delete(id).subscribe(() => this.cargarTodo());
+eliminarAsignacion(id: number) {
+  if (!confirm('¿Eliminar asignación?')) return;
+
+  // ✅ Buscar la asignación antes de eliminarla para saber qué vehículo era
+  const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
+
+  this.asignacionesService.delete(id).subscribe(() => {
+
+    // ✅ Actualizar el historial del vehículo a ACTIVO
+    if (asignacionAEliminar?.vehiculo?.id) {
+      const historialExistente = this.historiales.find(
+        h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
+      );
+
+      if (historialExistente) {
+        const historialActualizado = {
+          ...historialExistente,
+          estado: 'ACTIVO',
+          fecha: new Date(),
+          notas: 'Disponible automáticamente al eliminar asignación'
+        };
+        this.historialService.update(historialActualizado).subscribe(() => {
+          this.cargarTodo();
+        });
+      } else {
+        this.cargarTodo();
+      }
+    } else {
+      this.cargarTodo();
     }
-  }
+
+  });
+}
 
   buscarAsignacion() {
     const term = this.searchAsignacion.toLowerCase();
