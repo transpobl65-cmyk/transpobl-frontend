@@ -154,45 +154,46 @@ anioSeleccionado = new Date().getFullYear(); // ← año actual automático
   // ==================== GRÁFICOS ====================
 
 loadFlotaChart() {
-  this.historialService.list().subscribe(data => {
-    this.destruir(this.graficoFlota);
+  // Necesitamos tanto los vehículos como el historial
+  this.vehiculosService.list().subscribe(vehiculos => {
+    this.historialService.list().subscribe(historiales => {
+      this.destruir(this.graficoFlota);
 
-    if (!data || data.length === 0) {
-      this.totalHistorialFlota = 0;
-      return;
-    }
+      // ✅ Filtrar vehículos adquiridos hasta el año seleccionado
+      const vehiculosFiltrados = vehiculos.filter(v =>
+        !v.anio || v.anio <= this.anioSeleccionado
+      );
 
-    // Quedarse con el último estado de cada vehículo (sin filtrar por año)
-    const ultimoEstadoPorVehiculo: Record<number, string> = {};
+      if (vehiculosFiltrados.length === 0) {
+        this.totalHistorialFlota = 0;
+        return;
+      }
 
-    data
-      .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
-      .forEach(h => {
-        if (h.vehiculo?.id) {
-          ultimoEstadoPorVehiculo[h.vehiculo.id] = h.estado;
-        }
+      // ✅ Para cada vehículo filtrado, buscar su último estado en historial
+      const counts: Record<string, number> = {};
+
+      vehiculosFiltrados.forEach(v => {
+        const historialVehiculo = historiales
+          .filter(h => h.vehiculo?.id === v.id)
+          .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+        // Si tiene historial toma el último estado, si no tiene pone "Sin estado"
+        const ultimoEstado = historialVehiculo[0]?.estado || 'Sin estado';
+        counts[ultimoEstado] = (counts[ultimoEstado] || 0) + 1;
       });
 
-    const estados = Object.values(ultimoEstadoPorVehiculo);
-    this.totalHistorialFlota = estados.length;
+      this.totalHistorialFlota = vehiculosFiltrados.length;
 
-    if (estados.length === 0) return;
-
-    const counts: Record<string, number> = {};
-    estados.forEach(estado => {
-      const key = estado || 'Sin estado';
-      counts[key] = (counts[key] || 0) + 1;
-    });
-
-    this.graficoFlota = new Chart(this.chartFlota.nativeElement, {
-      type: 'doughnut',
-      data: {
-        labels: Object.keys(counts),
-        datasets: [{
-          data: Object.values(counts),
-          backgroundColor: this.getColores(Object.keys(counts).length)
-        }]
-      }
+      this.graficoFlota = new Chart(this.chartFlota.nativeElement, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(counts),
+          datasets: [{
+            data: Object.values(counts),
+            backgroundColor: this.getColores(Object.keys(counts).length)
+          }]
+        }
+      });
     });
   });
 }
