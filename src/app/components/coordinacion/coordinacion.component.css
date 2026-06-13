@@ -122,3 +122,93 @@ td {
 .btn-descargar:hover {
   background-color: #e68900;
 }
+.required {
+  color: #f97316;
+}
+
+.invalid {
+  border: 1px solid #ef4444 !important;
+}
+
+.error-msg {
+  color: #f87171;
+  font-size: 0.88rem;
+  margin-top: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.file-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.buscador {
+  margin: 1rem 0;
+}
+
+.buscador input {
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 6px;
+  border: 1px solid #2b3242;
+  background-color: #1d2433;
+  color: #e2e8f0;
+  font-size: 0.95rem;
+}
+
+.file-upload-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.file-upload-btn {
+  background-color: #2b3242;
+  color: #f97316;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.file-upload-btn:hover {
+  background-color: #374151;
+}
+
+.file-name {
+  font-size: 0.85rem;
+  color: #fbbf24;
+}
+
+.file-name.no-file {
+  color: #64748b;
+  font-style: italic;
+}
+
+.paginacion {
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.paginacion button {
+  background-color: #1d2433;
+  color: #f97316;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+}
+
+.paginacion button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

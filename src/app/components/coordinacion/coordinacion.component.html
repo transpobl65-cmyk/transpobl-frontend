@@ -1,147 +1,122 @@
 <!-- 🔒 SOLO ADMINISTRADOR -->
 <div class="card" *ngIf="role !== 'GERENTE'">
   <div class="card-head">Registrar Coordinación</div>
-
   <div class="card-body">
     <form (ngSubmit)="guardar()">
-
       <div class="form-grid">
 
-        <!-- Solicitud -->
         <div class="form-group">
-          <label for="solicitud">Solicitud *</label>
-
+          <label>Solicitud <span class="required">*</span></label>
           <select
-            id="solicitud"
             [(ngModel)]="coordinacion.solicitud.id"
             name="solicitud"
-            required
+            [class.invalid]="!coordinacion.solicitud?.id && intentado"
+            (change)="onSolicitudSeleccionada()"
           >
             <option value="">Seleccione una solicitud</option>
-
             <option *ngFor="let s of solicitudes" [value]="s.id">
               {{ s.cliente?.nombre }} - {{ s.destino }}
             </option>
           </select>
         </div>
 
-        <!-- Email empresa -->
         <div class="form-group">
-          <label for="emailEmpresa">Email de la empresa *</label>
-
+          <label>Email de la empresa <span class="required">*</span></label>
           <input
-            id="emailEmpresa"
             type="email"
             [(ngModel)]="coordinacion.emailEmpresa"
             name="emailEmpresa"
-            placeholder="empresa@correo.com"
-            required
+            placeholder="Se autocompleta desde el cliente"
+            [class.invalid]="!coordinacion.emailEmpresa && intentado"
           />
         </div>
 
-        <!-- Observaciones -->
         <div class="form-group full-width">
-          <label for="observaciones">Observaciones</label>
-
+          <label>Observaciones</label>
           <textarea
-            id="observaciones"
             [(ngModel)]="coordinacion.observaciones"
             name="observaciones"
             placeholder="Escribe el mensaje que irá en el correo al cliente..."
           ></textarea>
         </div>
 
-        <!-- 📎 Archivo -->
         <div class="form-group">
-          <label for="archivo">Adjuntar archivo PDF o Word</label>
-
-          <input
-            id="archivo"
-            type="file"
-            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            (change)="onFileChange($event)"
-          />
-
-          <small *ngIf="archivoSeleccionado" style="color: #ffa726;">
-            📎 {{ archivoSeleccionado.name }}
-          </small>
-
+          <label>
+            Adjuntar archivo
+            <span class="required">*</span>
+            <small style="color:#9ca3af; font-weight:400;"> (PDF, Word, PNG, JPG)</small>
+          </label>
+          <div class="file-upload-wrapper">
+            <label class="file-upload-btn">
+              📎 Seleccionar archivo
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/png,image/jpeg"
+                (change)="onFileChange($event)"
+                style="display:none;"
+              />
+            </label>
+            <span class="file-name" *ngIf="archivoSeleccionado">
+              ✅ {{ archivoSeleccionado.name }}
+            </span>
+            <span class="file-name" *ngIf="!archivoSeleccionado && coordinacion.archivoNombre">
+              📎 Archivo actual: {{ coordinacion.archivoNombre }}
+            </span>
+            <span class="file-name no-file" *ngIf="!archivoSeleccionado && !coordinacion.archivoNombre">
+              Sin archivo adjunto
+            </span>
+          </div>
           <small
-            *ngIf="!archivoSeleccionado && coordinacion.archivoNombre"
-            style="color: #ffa726;"
+            class="file-error"
+            *ngIf="!archivoSeleccionado && !coordinacion.archivoNombre && intentado"
           >
-            📎 Archivo actual: {{ coordinacion.archivoNombre }}
+            ⚠️ Debes adjuntar un archivo.
           </small>
         </div>
 
       </div>
 
-      <!-- Botones -->
+      <p class="error-msg" *ngIf="errorCoordinacion">{{ errorCoordinacion }}</p>
+
       <div class="button-group">
-        <button type="submit" class="btn-guardar">
-          Guardar
-        </button>
-
-        <button
-          type="button"
-          class="btn-cancelar"
-          (click)="limpiar()"
-        >
-          Cancelar
-        </button>
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cancelar" (click)="limpiar()">Cancelar</button>
       </div>
-
     </form>
   </div>
 </div>
 
 <!-- 🔍 BUSCADOR -->
-<input
-  type="text"
-  placeholder="🔍 Buscar coordinación por email o cliente..."
-  [(ngModel)]="searchCoordinacion"
-  (input)="buscar()"
-/>
+<div class="buscador">
+  <input
+    type="text"
+    placeholder="🔍 Buscar por cliente, destino, email o RUC/DNI..."
+    [(ngModel)]="searchCoordinacion"
+    (input)="buscar()"
+  />
+</div>
 
 <!-- 📋 TABLA -->
 <div class="card">
-
-  <div class="card-head">
-    Coordinaciones Registradas
-  </div>
-
+  <div class="card-head">Coordinaciones Registradas</div>
   <div class="card-body">
 
-    <!-- ✅ SI HAY DATOS -->
-    <table *ngIf="coordinaciones.length > 0">
-
+    <table *ngIf="coordinacionesFiltradas.length > 0">
       <thead>
         <tr>
           <th>Solicitud</th>
           <th>Email Empresa</th>
           <th>Observaciones</th>
           <th>Archivo</th>
-
-          <th *ngIf="role !== 'GERENTE'">
-            Acciones
-          </th>
+          <th *ngIf="role !== 'GERENTE'">Acciones</th>
         </tr>
       </thead>
-
       <tbody>
-
-        <tr *ngFor="let c of coordinaciones | slice:(pagina-1)*items:(pagina*items)">
-
-          <td>
-            {{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}
-          </td>
-
+        <tr *ngFor="let c of coordinacionesFiltradas | slice:(pagina-1)*items:(pagina*items)">
+          <td>{{ c.solicitud?.cliente?.nombre }} - {{ c.solicitud?.destino }}</td>
           <td>{{ c.emailEmpresa }}</td>
-
-          <td>{{ c.observaciones }}</td>
-
+          <td>{{ c.observaciones || '—' }}</td>
           <td>
-
             <button
               *ngIf="c.archivoBase64"
               class="btn-descargar"
@@ -149,85 +124,31 @@
             >
               ⬇️ Descargar
             </button>
-
-            <span *ngIf="!c.archivoBase64">
-              —
+            <span *ngIf="!c.archivoBase64" style="color:#64748b; font-style:italic;">
+              No adjunto
             </span>
-
           </td>
-
           <td *ngIf="role !== 'GERENTE'">
-
-            <button
-              (click)="editar(c)"
-              class="btn-editar"
-            >
-              ✏️
-            </button>
-
-            <button
-              (click)="eliminar(c.id)"
-              class="btn-eliminar"
-            >
-              🗑️
-            </button>
-
+            <button (click)="editar(c)" class="btn-editar">✏️</button>
+            <button (click)="eliminar(c.id)" class="btn-eliminar">🗑️</button>
           </td>
-
         </tr>
-
       </tbody>
-
     </table>
 
-    <!-- ❌ SIN DATOS -->
     <div
-      *ngIf="coordinaciones.length === 0"
-      style="
-        text-align:center;
-        padding: 40px 20px;
-        color:#cbd5e1;
-      "
+      *ngIf="coordinacionesFiltradas.length === 0"
+      style="text-align:center; padding: 40px 20px; color:#cbd5e1;"
     >
-
-      <div style="font-size: 60px; margin-bottom: 10px;">
-        📭
-      </div>
-
-      <h3 style="color:#ffa726; margin-bottom:10px;">
-        No hay coordinaciones registradas
-      </h3>
-
-      <p style="opacity:0.8;">
-        Aún no se ha registrado información en este módulo.
-      </p>
-
+      <div style="font-size: 60px; margin-bottom: 10px;">📭</div>
+      <h3 style="color:#ffa726; margin-bottom:10px;">No hay coordinaciones registradas</h3>
+      <p style="opacity:0.8;">Aún no se ha registrado información en este módulo.</p>
     </div>
 
-    <!-- 🔁 PAGINACIÓN -->
-    <div
-      class="paginacion"
-      *ngIf="coordinaciones.length > items"
-    >
-
-      <button
-        [disabled]="pagina === 1"
-        (click)="cambiarPagina(-1)"
-      >
-        ⬅️
-      </button>
-
-      <span>
-        Página {{ pagina }} de {{ totalPaginas }}
-      </span>
-
-      <button
-        [disabled]="pagina === totalPaginas"
-        (click)="cambiarPagina(1)"
-      >
-        ➡️
-      </button>
-
+    <div class="paginacion" *ngIf="coordinacionesFiltradas.length > items">
+      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️</button>
+      <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
     </div>
 
   </div>
