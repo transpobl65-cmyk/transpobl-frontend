@@ -2,8 +2,10 @@
   <div class="card-head">Registrar Gasto del Conductor</div>
 
   <!-- ✅ Mensaje si no hay gastos -->
-  <div class="total-box" *ngIf="gastos.length === 0" style="color:#64748b; justify-content:center;">
-    📭 Aún no tienes gastos registrados, <strong style="color:#f59e0b; margin-left:4px;">{{ conductorUsername }}</strong>.
+  <div class="total-box" *ngIf="gastos.length === 0"
+    style="color:#64748b; justify-content:center;">
+    📭 Aún no tienes gastos registrados,
+    <strong style="color:#f59e0b; margin-left:4px;">{{ conductorUsername }}</strong>.
   </div>
 
   <!-- ✅ Total si hay gastos -->
@@ -197,9 +199,12 @@
     </table>
 
     <!-- ✅ Sin gastos -->
-    <div *ngIf="gastos.length === 0" style="text-align:center; padding: 2rem; color:#64748b;">
+    <div *ngIf="gastos.length === 0"
+      style="text-align:center; padding: 2rem; color:#64748b;">
       <div style="font-size:2.5rem;">📋</div>
-      <p style="font-style:italic; margin-top:0.5rem;">No hay gastos registrados aún.</p>
+      <p style="font-style:italic; margin-top:0.5rem;">
+        No hay gastos registrados aún.
+      </p>
     </div>
 
     <div class="paginacion" *ngIf="gastos.length > itemsPagina">

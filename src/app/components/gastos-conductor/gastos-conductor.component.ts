@@ -5,6 +5,7 @@ import { GastosConductor } from '../../models/GastosConductor';
 import { Asignacion } from '../../models/Asignaciones';
 import { GastosConductorService } from '../../services/gastosconductor.service';
 import { AsignacionesService } from '../../services/asignaciones.service';
+import { LoginService } from '../../services/login.service';
 
 @Component({
   selector: 'app-gastos-conductor',
@@ -38,11 +39,12 @@ export class GastosConductorComponent implements OnInit {
 
   constructor(
     private gastosService: GastosConductorService,
-    private asignacionesService: AsignacionesService
+    private asignacionesService: AsignacionesService,
+    private loginService: LoginService
   ) {}
 
   ngOnInit(): void {
-    this.conductorUsername = sessionStorage.getItem('username') || '';
+    this.conductorUsername = this.loginService.showUsername();
     this.cargarMisAsignaciones();
     this.cargarGastosConductor();
   }
@@ -54,18 +56,19 @@ export class GastosConductorComponent implements OnInit {
     });
   }
 
-cargarGastosConductor() {
-  this.gastosService.list().subscribe({
-    next: (g) => {
-      // ✅ Filtrar solo los gastos del conductor logueado
-      this.gastos = g.filter(
-        gasto => gasto.conductor?.username === this.conductorUsername
-      );
-      this.calcularTotal();
-    },
-    error: (err) => console.error('❌ Error al listar gastos:', err)
-  });
-}
+  cargarGastosConductor() {
+    this.gastosService.list().subscribe({
+      next: (g) => {
+        // ✅ Filtrar solo los gastos del conductor logueado
+        this.gastos = g.filter(
+          gasto => gasto.conductor?.username === this.conductorUsername
+        );
+        this.calcularTotal();
+      },
+      error: (err) => console.error('❌ Error al listar gastos:', err)
+    });
+  }
+
   calcularTotal() {
     this.totalGastos = this.gastos.reduce((sum, g) => sum + (Number(g.monto) || 0), 0);
   }
