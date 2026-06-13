@@ -53,11 +53,13 @@ export class EstadoCarrosComponent implements OnInit {
   itemsAsignacion = 3;
   asignacionIntentado = false;
   errorAsignacion = '';
-// ── Variables string para fechas ───────────────────
-fechaHistorialInput: string = '';
-fechaInicioInput: string = '';
-fechaFinInput: string = '';
-anioVehiculoIntentado: boolean = false; // para marcar año obligatorio
+
+  // ── Variables string para fechas ───────────────────
+  fechaHistorialInput: string = '';
+  fechaInicioInput: string = '';
+  fechaFinInput: string = '';
+  anioVehiculoIntentado: boolean = false;
+
   // ── Auth ───────────────────────────────────────────
   role: string | null = null;
 
@@ -90,35 +92,35 @@ anioVehiculoIntentado: boolean = false; // para marcar año obligatorio
   // VEHÍCULOS
   // ══════════════════════════════════════════════════
 
-guardarVehiculo() {
-  this.vehiculoIntentado = true;
-  this.errorVehiculo = '';
+  guardarVehiculo() {
+    this.vehiculoIntentado = true;
+    this.errorVehiculo = '';
 
-  if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim() || !this.vehiculo.anio) {
-    this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-    return;
-  }
-
-  if (!this.vehiculo.id) {
-    const placaExiste = this.vehiculos.some(
-      v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
-    );
-    if (placaExiste) {
-      this.errorVehiculo = '⚠️ Ya existe un vehículo con esa placa. Verifica e intenta de nuevo.';
+    if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim() || !this.vehiculo.anio) {
+      this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
       return;
     }
+
+    if (!this.vehiculo.id) {
+      const placaExiste = this.vehiculos.some(
+        v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
+      );
+      if (placaExiste) {
+        this.errorVehiculo = '⚠️ Ya existe un vehículo con esa placa. Verifica e intenta de nuevo.';
+        return;
+      }
+    }
+
+    const accion$ = this.vehiculo.id
+      ? this.vehiculosService.update(this.vehiculo)
+      : this.vehiculosService.insert(this.vehiculo);
+
+    accion$.subscribe(() => {
+      alert(this.vehiculo.id ? '✅ Vehículo actualizado' : '✅ Vehículo registrado');
+      this.limpiarVehiculo();
+      this.vehiculosService.list().subscribe(v => (this.vehiculos = v));
+    });
   }
-
-  const accion$ = this.vehiculo.id
-    ? this.vehiculosService.update(this.vehiculo)
-    : this.vehiculosService.insert(this.vehiculo);
-
-  accion$.subscribe(() => {
-    alert(this.vehiculo.id ? '✅ Vehículo actualizado' : '✅ Vehículo registrado');
-    this.limpiarVehiculo();
-    this.vehiculosService.list().subscribe(v => (this.vehiculos = v));
-  });
-}
 
   editarVehiculo(v: Vehiculo) {
     this.vehiculo = JSON.parse(JSON.stringify(v));
@@ -155,74 +157,76 @@ guardarVehiculo() {
   // HISTORIAL
   // ══════════════════════════════════════════════════
 
-guardarHistorial() {
-  this.historialIntentado = true;
-  this.errorHistorial = '';
+  guardarHistorial() {
+    this.historialIntentado = true;
+    this.errorHistorial = '';
 
-  if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.fechaHistorialInput) {
-    this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-    return;
-  }
-
-  if (typeof this.historial.vehiculo.id === 'string') {
-    this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
-  }
-
-  // ✅ Validar duplicado solo al crear
-  if (!this.historial.id) {
-    const yaExiste = this.historiales.some(
-      h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
-    );
-    if (yaExiste) {
-      this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
+    if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.fechaHistorialInput) {
+      this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
       return;
     }
-  }
 
-  // ✅ Al editar, verificar si la asignación activa ya terminó
-  if (this.historial.id) {
-    const asignacionActiva = this.asignaciones
-      .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
-      .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
+    if (typeof this.historial.vehiculo.id === 'string') {
+      this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
+    }
 
-    if (asignacionActiva) {
-      const fechaFin = new Date(asignacionActiva.fin).getTime();
-      const hoy = new Date().getTime();
-
-      if (hoy < fechaFin) {
-        const finFormateada = new Date(asignacionActiva.fin).toLocaleDateString('es-PE');
-        this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+    // ✅ Validar duplicado solo al crear
+    if (!this.historial.id) {
+      const yaExiste = this.historiales.some(
+        h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
+      );
+      if (yaExiste) {
+        this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
         return;
       }
     }
+
+    // ✅ Al editar, verificar si la asignación activa ya terminó
+    if (this.historial.id) {
+      const asignacionActiva = this.asignaciones
+        .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
+        .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
+
+      if (asignacionActiva) {
+        const fechaFin = new Date(asignacionActiva.fin);
+        fechaFin.setHours(0, 0, 0, 0);
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+
+        if (hoy <= fechaFin) {
+          const finFormateada = fechaFin.toLocaleDateString('es-PE');
+          this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}. Se recomienda esperar al menos 5 días adicionales para posibles reparos antes de una nueva asignación.`;
+          return;
+        }
+      }
+    }
+
+    this.historial.fecha = new Date(this.fechaHistorialInput) as any;
+
+    const accion$ = this.historial.id
+      ? this.historialService.update(this.historial)
+      : this.historialService.insert(this.historial);
+
+    accion$.subscribe({
+      next: () => {
+        alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
+        this.limpiarHistorial();
+        this.historialService.list().subscribe(h => (this.historiales = h));
+      },
+      error: (err) => {
+        console.error('❌ Error al registrar historial:', err);
+        alert('Ocurrió un error al registrar el historial.');
+      }
+    });
   }
 
-  this.historial.fecha = new Date(this.fechaHistorialInput) as any;
-
-  const accion$ = this.historial.id
-    ? this.historialService.update(this.historial)
-    : this.historialService.insert(this.historial);
-
-  accion$.subscribe({
-    next: () => {
-      alert(this.historial.id ? '✅ Historial actualizado' : '✅ Historial registrado');
-      this.limpiarHistorial();
-      this.historialService.list().subscribe(h => (this.historiales = h));
-    },
-    error: (err) => {
-      console.error('❌ Error al registrar historial:', err);
-      alert('Ocurrió un error al registrar el historial.');
-    }
-  });
-}
-
-editarHistorial(h: HistorialEstadoVehiculo) {
-  this.historial = JSON.parse(JSON.stringify(h));
-  const d = new Date(h.fecha);
-  this.fechaHistorialInput = d.toISOString().split('T')[0];
-  this.historialIntentado = false;
-  this.errorHistorial = '';
-}
+  editarHistorial(h: HistorialEstadoVehiculo) {
+    this.historial = JSON.parse(JSON.stringify(h));
+    const d = new Date(h.fecha);
+    this.fechaHistorialInput = d.toISOString().split('T')[0];
+    this.historialIntentado = false;
+    this.errorHistorial = '';
+  }
 
   eliminarHistorial(id: number) {
     if (confirm('¿Eliminar historial?')) {
@@ -239,208 +243,204 @@ editarHistorial(h: HistorialEstadoVehiculo) {
     );
   }
 
-limpiarHistorial() {
-  this.historial = new HistorialEstadoVehiculo();
-  this.vehiculoSeleccionadoId = 0;
-  this.fechaHistorialInput = '';
-  this.historialIntentado = false;
-  this.errorHistorial = '';
-}
+  limpiarHistorial() {
+    this.historial = new HistorialEstadoVehiculo();
+    this.vehiculoSeleccionadoId = 0;
+    this.fechaHistorialInput = '';
+    this.historialIntentado = false;
+    this.errorHistorial = '';
+  }
 
   // ══════════════════════════════════════════════════
   // ASIGNACIONES
   // ══════════════════════════════════════════════════
-guardarAsignacion() {
-  this.asignacionIntentado = true;
-  this.errorAsignacion = '';
 
-  if (
-    !this.solicitudSeleccionadaId ||
-    !this.vehiculoAsignadoId ||
-    !this.conductorSeleccionadoId ||
-    !this.fechaInicioInput ||
-    !this.fechaFinInput
-  ) {
-    this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-    return;
-  }
+  guardarAsignacion() {
+    this.asignacionIntentado = true;
+    this.errorAsignacion = '';
 
-  const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
-  const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
-  const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
-
-  if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
-    this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
-    return;
-  }
-
-  // ✅ Validar fecha fin > fecha inicio
-  const nuevaInicio = new Date(this.fechaInicioInput).getTime();
-  const nuevaFin = new Date(this.fechaFinInput).getTime();
-
-  if (nuevaFin <= nuevaInicio) {
-    this.errorAsignacion = '⚠️ La fecha fin debe ser posterior a la fecha inicio.';
-    return;
-  }
-
-  // ✅ Validar traslape con otras asignaciones
-  const traslape = this.asignaciones.some(a => {
-    if (a.vehiculo?.id !== vehiculoSeleccionado.id) return false;
-    if (this.asignacion.id && a.id === this.asignacion.id) return false;
-    const aInicio = new Date(a.inicio).getTime();
-    const aFin = new Date(a.fin).getTime();
-    return nuevaInicio < aFin && nuevaFin > aInicio;
-  });
-
-  if (traslape) {
-    this.errorAsignacion = '⚠️ El vehículo ya tiene una asignación en ese rango de fechas.';
-    return;
-  }
-
-  this.asignacion.solicitud = solicitudSeleccionada;
-  this.asignacion.vehiculo = vehiculoSeleccionado;
-  this.asignacion.conductor = {
-    id: conductorSeleccionado.id,
-    username: conductorSeleccionado.username
-  };
-  this.asignacion.estado = 'ASIGNADO';
-  this.asignacion.inicio = new Date(this.fechaInicioInput);
-  this.asignacion.fin = new Date(this.fechaFinInput);
-
-  const accion$ = this.asignacion.id
-    ? this.asignacionesService.update(this.asignacion)
-    : this.asignacionesService.insert(this.asignacion);
-
-accion$.subscribe({
-  next: () => {
-    // ✅ Actualizar historial a ASIGNADO al crear asignación
-    if (!this.asignacion.id) {
-      const historialExistente = this.historiales.find(
-        h => h.vehiculo?.id === vehiculoSeleccionado.id
-      );
-
-      const finalizarGuardado = () => {
-        alert('✅ Asignación registrada');
-        this.limpiarAsignacion();
-        this.cargarTodo();
-      };
-
-      if (historialExistente) {
-        const historialActualizado = {
-          ...historialExistente,
-          estado: 'ASIGNADO',
-          fecha: new Date(this.fechaInicioInput),
-          notas: 'Asignado automáticamente al registrar asignación'
-        };
-        this.historialService.update(historialActualizado).subscribe(() => {
-          finalizarGuardado();
-        });
-      } else {
-        const nuevoHistorial = {
-          vehiculo: { id: vehiculoSeleccionado.id },
-          estado: 'ASIGNADO',
-          fecha: new Date(this.fechaInicioInput),
-          notas: 'Asignado automáticamente al registrar asignación'
-        };
-        this.historialService.insert(nuevoHistorial as any).subscribe(() => {
-          finalizarGuardado();
-        });
-      }
-    } else {
-      alert('✅ Asignación actualizada');
-      this.limpiarAsignacion();
-      this.cargarTodo();
-    }
-  },
-  error: (err) => {
-    console.error('❌ Error al registrar asignación:', err);
-    alert('Ocurrió un error al registrar la asignación.');
-  }
-});
-}
-
-getEstadoVehiculo(vehiculoId: number): string {
-  const historialVehiculo = this.historiales
-    .filter(h => h.vehiculo?.id === vehiculoId)
-    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
-  return historialVehiculo[0]?.estado || 'Sin estado';
-}
-
-onSolicitudSeleccionada() {
-  const solicitud = this.solicitudes.find(
-    s => s.id === Number(this.solicitudSeleccionadaId)
-  );
-  if (solicitud) {
-    this.vehiculoAsignadoId = solicitud.vehiculo?.id || 0;
-    this.fechaInicioInput = new Date(solicitud.fechaSalida).toISOString().split('T')[0];
-  }
-}
-
-
-editarAsignacion(a: Asignacion) {
-  // ✅ Bloquear edición si la asignación aún está activa
-  const fechaFin = new Date(a.fin).getTime();
-  const hoy = new Date().getTime();
-
-  if (hoy < fechaFin) {
-    const finFormateada = new Date(a.fin).toLocaleDateString('es-PE');
-    alert(`⚠️ No puedes editar esta asignación porque aún está activa hasta el ${finFormateada}.`);
-    return;
-  }
-
-  this.asignacion = JSON.parse(JSON.stringify(a));
-  this.solicitudSeleccionadaId = a.solicitud?.id || 0;
-  this.vehiculoAsignadoId = a.vehiculo?.id || 0;
-  this.conductorSeleccionadoId = a.conductor?.id || 0;
-  this.fechaInicioInput = new Date(a.inicio).toISOString().split('T')[0];
-  this.fechaFinInput = new Date(a.fin).toISOString().split('T')[0];
-  this.asignacionIntentado = false;
-  this.errorAsignacion = '';
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-eliminarAsignacion(id: number) {
-  if (!confirm('¿Eliminar asignación?')) return;
-
-  const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
-
-  // ✅ Bloquear si la asignación aún está activa
-  if (asignacionAEliminar) {
-    const fechaFin = new Date(asignacionAEliminar.fin).getTime();
-    const hoy = new Date().getTime();
-
-    if (hoy < fechaFin) {
-      const finFormateada = new Date(asignacionAEliminar.fin).toLocaleDateString('es-PE');
-      alert(`⚠️ No puedes eliminar esta asignación porque aún está activa hasta el ${finFormateada}. Espera a que termine.`);
+    if (
+      !this.solicitudSeleccionadaId ||
+      !this.vehiculoAsignadoId ||
+      !this.conductorSeleccionadoId ||
+      !this.fechaInicioInput ||
+      !this.fechaFinInput
+    ) {
+      this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
       return;
     }
+
+    const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
+    const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
+    const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
+
+    if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
+      this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
+      return;
+    }
+
+    const nuevaInicio = new Date(this.fechaInicioInput).getTime();
+    const nuevaFin = new Date(this.fechaFinInput).getTime();
+
+    if (nuevaFin <= nuevaInicio) {
+      this.errorAsignacion = '⚠️ La fecha fin debe ser posterior a la fecha inicio.';
+      return;
+    }
+
+    const traslape = this.asignaciones.some(a => {
+      if (a.vehiculo?.id !== vehiculoSeleccionado.id) return false;
+      if (this.asignacion.id && a.id === this.asignacion.id) return false;
+      const aInicio = new Date(a.inicio).getTime();
+      const aFin = new Date(a.fin).getTime();
+      return nuevaInicio < aFin && nuevaFin > aInicio;
+    });
+
+    if (traslape) {
+      this.errorAsignacion = '⚠️ El vehículo ya tiene una asignación en ese rango de fechas.';
+      return;
+    }
+
+    this.asignacion.solicitud = solicitudSeleccionada;
+    this.asignacion.vehiculo = vehiculoSeleccionado;
+    this.asignacion.conductor = {
+      id: conductorSeleccionado.id,
+      username: conductorSeleccionado.username
+    };
+    this.asignacion.estado = 'ASIGNADO';
+    this.asignacion.inicio = new Date(this.fechaInicioInput);
+    this.asignacion.fin = new Date(this.fechaFinInput);
+
+    const accion$ = this.asignacion.id
+      ? this.asignacionesService.update(this.asignacion)
+      : this.asignacionesService.insert(this.asignacion);
+
+    accion$.subscribe({
+      next: () => {
+        if (!this.asignacion.id) {
+          const historialExistente = this.historiales.find(
+            h => h.vehiculo?.id === vehiculoSeleccionado.id
+          );
+
+          const finalizarGuardado = () => {
+            alert('✅ Asignación registrada');
+            this.limpiarAsignacion();
+            this.cargarTodo();
+          };
+
+          if (historialExistente) {
+            const historialActualizado = {
+              ...historialExistente,
+              estado: 'ASIGNADO',
+              fecha: new Date(this.fechaInicioInput)
+            };
+            this.historialService.update(historialActualizado).subscribe(() => {
+              finalizarGuardado();
+            });
+          } else {
+            const nuevoHistorial = {
+              vehiculo: { id: vehiculoSeleccionado.id },
+              estado: 'ASIGNADO',
+              fecha: new Date(this.fechaInicioInput)
+            };
+            this.historialService.insert(nuevoHistorial as any).subscribe(() => {
+              finalizarGuardado();
+            });
+          }
+        } else {
+          alert('✅ Asignación actualizada');
+          this.limpiarAsignacion();
+          this.cargarTodo();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Error al registrar asignación:', err);
+        alert('Ocurrió un error al registrar la asignación.');
+      }
+    });
   }
 
-  this.asignacionesService.delete(id).subscribe(() => {
-    if (asignacionAEliminar?.vehiculo?.id) {
-      const historialExistente = this.historiales.find(
-        h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
-      );
-      if (historialExistente) {
-        const historialActualizado = {
-          ...historialExistente,
-          estado: 'ACTIVO',
-          fecha: new Date(),
-          notas: 'Disponible automáticamente al eliminar asignación'
-        };
-        this.historialService.update(historialActualizado).subscribe(() => {
+  getEstadoVehiculo(vehiculoId: number): string {
+    const historialVehiculo = this.historiales
+      .filter(h => h.vehiculo?.id === vehiculoId)
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+    return historialVehiculo[0]?.estado || 'Sin estado';
+  }
+
+  onSolicitudSeleccionada() {
+    const solicitud = this.solicitudes.find(
+      s => s.id === Number(this.solicitudSeleccionadaId)
+    );
+    if (solicitud) {
+      this.vehiculoAsignadoId = solicitud.vehiculo?.id || 0;
+      this.fechaInicioInput = new Date(solicitud.fechaSalida).toISOString().split('T')[0];
+    }
+  }
+
+  editarAsignacion(a: Asignacion) {
+    const fechaFin = new Date(a.fin);
+    fechaFin.setHours(0, 0, 0, 0);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (hoy <= fechaFin) {
+      const finFormateada = fechaFin.toLocaleDateString('es-PE');
+      alert(`⚠️ No puedes editar esta asignación porque aún está activa hasta el ${finFormateada}.`);
+      return;
+    }
+
+    this.asignacion = JSON.parse(JSON.stringify(a));
+    this.solicitudSeleccionadaId = a.solicitud?.id || 0;
+    this.vehiculoAsignadoId = a.vehiculo?.id || 0;
+    this.conductorSeleccionadoId = a.conductor?.id || 0;
+    this.fechaInicioInput = new Date(a.inicio).toISOString().split('T')[0];
+    this.fechaFinInput = new Date(a.fin).toISOString().split('T')[0];
+    this.asignacionIntentado = false;
+    this.errorAsignacion = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  eliminarAsignacion(id: number) {
+    if (!confirm('¿Eliminar asignación?')) return;
+
+    const asignacionAEliminar = this.asignaciones.find(a => a.id === id);
+
+    if (asignacionAEliminar) {
+      const fechaFin = new Date(asignacionAEliminar.fin);
+      fechaFin.setHours(0, 0, 0, 0);
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+
+      if (hoy <= fechaFin) {
+        const finFormateada = fechaFin.toLocaleDateString('es-PE');
+        alert(`⚠️ No puedes eliminar esta asignación porque aún está activa hasta el ${finFormateada}. Espera a que termine.`);
+        return;
+      }
+    }
+
+    this.asignacionesService.delete(id).subscribe(() => {
+      if (asignacionAEliminar?.vehiculo?.id) {
+        const historialExistente = this.historiales.find(
+          h => h.vehiculo?.id === asignacionAEliminar.vehiculo.id
+        );
+        if (historialExistente) {
+          const historialActualizado = {
+            ...historialExistente,
+            estado: 'ACTIVO',
+            fecha: new Date()
+          };
+          this.historialService.update(historialActualizado).subscribe(() => {
+            this.cargarTodo();
+          });
+        } else {
           this.cargarTodo();
-        });
+        }
       } else {
         this.cargarTodo();
       }
-    } else {
-      this.cargarTodo();
-    }
-  });
-}
- 
+    });
+  }
 
-buscarAsignacion() {
+  buscarAsignacion() {
     const term = this.searchAsignacion.toLowerCase();
     if (!term) return this.cargarTodo();
     this.asignaciones = this.asignaciones.filter(a =>
@@ -449,16 +449,16 @@ buscarAsignacion() {
     );
   }
 
-limpiarAsignacion() {
-  this.asignacion = new Asignacion();
-  this.solicitudSeleccionadaId = 0;
-  this.vehiculoAsignadoId = 0;
-  this.conductorSeleccionadoId = 0;
-  this.fechaInicioInput = '';
-  this.fechaFinInput = '';
-  this.asignacionIntentado = false;
-  this.errorAsignacion = '';
-}
+  limpiarAsignacion() {
+    this.asignacion = new Asignacion();
+    this.solicitudSeleccionadaId = 0;
+    this.vehiculoAsignadoId = 0;
+    this.conductorSeleccionadoId = 0;
+    this.fechaInicioInput = '';
+    this.fechaFinInput = '';
+    this.asignacionIntentado = false;
+    this.errorAsignacion = '';
+  }
 
   // ══════════════════════════════════════════════════
   // PAGINACIÓN
