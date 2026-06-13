@@ -1,7 +1,6 @@
 <div class="card">
   <div class="card-head">Registrar Gasto del Conductor</div>
 
-  <!-- 💰 Total visible solo si el usuario tiene gastos -->
   <div class="total-box" *ngIf="gastos.length > 0">
     💰 Total gastado por <strong>{{ conductorUsername }}</strong>:
     <span>S/. {{ totalGastos | number:'1.2-2' }}</span>
@@ -10,11 +9,15 @@
   <div class="card-body">
     <form (ngSubmit)="guardarGasto()">
       <div class="form-grid-3">
-        
-        <!-- 🟢 Select de Asignación -->
+
         <div class="form-group">
-          <label>Asignación *</label>
-          <select id="asignacion" [(ngModel)]="gasto.asignacion" name="asignacion" required>
+          <label>Asignación <span class="required">*</span></label>
+          <select
+            [(ngModel)]="gasto.asignacion"
+            name="asignacion"
+            [class.invalid]="!gasto.asignacion?.id && gastoIntentado"
+            (change)="onAsignacionSeleccionada()"
+          >
             <option [ngValue]="null">Seleccione una asignación</option>
             <option *ngFor="let a of asignaciones" [ngValue]="a">
               {{ a.vehiculo?.placa }} - {{ a.solicitud?.destino }} ({{ a.estado }})
@@ -24,44 +27,141 @@
 
         <div class="form-group">
           <label>Placa</label>
-          <input [(ngModel)]="gasto.placa" name="placa" />
+          <input
+            [(ngModel)]="gasto.placa"
+            name="placa"
+            placeholder="Se autocompleta"
+            readonly
+          />
         </div>
 
         <div class="form-group">
           <label>Ruta</label>
-          <input [(ngModel)]="gasto.ruta" name="ruta" />
+          <input
+            [(ngModel)]="gasto.ruta"
+            name="ruta"
+            placeholder="Se autocompleta"
+            readonly
+          />
         </div>
 
         <div class="form-group">
-          <label>Tipo de gasto</label>
-          <input [(ngModel)]="gasto.tipo" name="tipo" />
+          <label>Tipo de gasto <span class="required">*</span></label>
+          <select
+            [(ngModel)]="gasto.tipo"
+            name="tipoSelect"
+            [class.invalid]="!gasto.tipo && gastoIntentado"
+            (change)="tipoPersonalizado = gasto.tipo === 'Otro'; gasto.tipo = gasto.tipo === 'Otro' ? '' : gasto.tipo"
+          >
+            <option value="" disabled selected>Selecciona un tipo</option>
+            <option value="Combustible">Combustible</option>
+            <option value="Comida">Comida</option>
+            <option value="Hospedaje">Hospedaje</option>
+            <option value="Peaje">Peaje</option>
+            <option value="Mantenimiento">Mantenimiento</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
+          <input
+            *ngIf="tipoPersonalizado"
+            [(ngModel)]="gasto.tipo"
+            name="tipoCustom"
+            placeholder="Escribe el tipo de gasto..."
+            [class.invalid]="!gasto.tipo && gastoIntentado"
+            style="margin-top: 0.5rem;"
+          />
         </div>
 
         <div class="form-group">
-          <label>Proveedor</label>
-          <input [(ngModel)]="gasto.proveedor" name="proveedor" />
+          <label>Proveedor <span class="required">*</span></label>
+          <select
+            [(ngModel)]="gasto.proveedor"
+            name="proveedorSelect"
+            [class.invalid]="!gasto.proveedor && gastoIntentado"
+            (change)="proveedorPersonalizado = gasto.proveedor === 'Otro'; gasto.proveedor = gasto.proveedor === 'Otro' ? '' : gasto.proveedor"
+          >
+            <option value="" disabled selected>Selecciona un proveedor</option>
+            <option value="Grifo Petroperu">Grifo Petroperu</option>
+            <option value="Restaurante">Restaurante</option>
+            <option value="Hotel">Hotel</option>
+            <option value="Farmacias">Farmacias</option>
+            <option value="Ferretería">Ferretería</option>
+            <option value="Otro">Otro (especificar)</option>
+          </select>
+          <input
+            *ngIf="proveedorPersonalizado"
+            [(ngModel)]="gasto.proveedor"
+            name="proveedorCustom"
+            placeholder="Escribe el proveedor..."
+            [class.invalid]="!gasto.proveedor && gastoIntentado"
+            style="margin-top: 0.5rem;"
+          />
         </div>
 
         <div class="form-group">
-          <label>Comprobante</label>
-          <input [(ngModel)]="gasto.comprobante" name="comprobante" />
+          <label>Monto (S/) <span class="required">*</span></label>
+          <input
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="gasto.monto"
+            name="monto"
+            placeholder="Ej. 50.00"
+            [class.invalid]="!(gasto.monto > 0) && gastoIntentado"
+          />
         </div>
 
         <div class="form-group">
-          <label>Monto (S/)</label>
-          <input type="number" [(ngModel)]="gasto.monto" name="monto" />
+          <label>Fecha <span class="required">*</span></label>
+          <input
+            type="date"
+            [(ngModel)]="fechaInput"
+            name="fecha"
+            [class.invalid]="!fechaInput && gastoIntentado"
+          />
         </div>
 
         <div class="form-group">
-          <label>Fecha</label>
-          <input type="date" [(ngModel)]="gasto.fecha" name="fecha" />
+          <label>Comprobante <span class="required">*</span></label>
+          <div class="file-upload-wrapper">
+            <label class="file-upload-btn">
+              📎 Seleccionar archivo
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+                (change)="onFileChange($event)"
+                style="display:none;"
+              />
+            </label>
+            <span class="file-name" *ngIf="archivoSeleccionado">
+              ✅ {{ archivoSeleccionado.name }}
+            </span>
+            <span class="file-name" *ngIf="!archivoSeleccionado && gasto.comprobante">
+              📎 {{ gasto.comprobante }}
+            </span>
+            <span class="file-name no-file" *ngIf="!archivoSeleccionado && !gasto.comprobante">
+              Sin comprobante
+            </span>
+          </div>
+          <small
+            class="field-error"
+            *ngIf="!archivoSeleccionado && !gasto.comprobante && gastoIntentado"
+          >
+            ⚠️ Debes adjuntar un comprobante.
+          </small>
         </div>
 
         <div class="form-group full-width">
           <label>Observaciones</label>
-          <textarea [(ngModel)]="gasto.observaciones" name="observaciones"></textarea>
+          <textarea
+            [(ngModel)]="gasto.observaciones"
+            name="observaciones"
+            placeholder="Nota adicional (opcional)..."
+          ></textarea>
         </div>
+
       </div>
+
+      <p class="error-msg" *ngIf="errorGasto">{{ errorGasto }}</p>
 
       <div class="button-group">
         <button type="submit" class="btn-guardar">Guardar</button>
@@ -69,15 +169,14 @@
       </div>
     </form>
 
-    <!-- 🔍 Buscador -->
     <input
       type="text"
       placeholder="🔍 Buscar por tipo, proveedor o placa..."
       [(ngModel)]="searchGasto"
       (input)="buscarGasto()"
+      style="margin: 1rem 0; width: 100%;"
     />
 
-    <!-- 📋 Tabla de gastos -->
     <table>
       <thead>
         <tr>
@@ -87,17 +186,28 @@
           <th>Proveedor</th>
           <th>Monto</th>
           <th>Fecha</th>
+          <th>Comprobante</th>
           <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let g of gastos | slice:(pagina-1)*itemsPagina:(pagina*itemsPagina)">
-          <td>{{ g.asignacion?.vehiculo?.placa }}</td>
-          <td>{{ g.placa }}</td>
+          <td>{{ g.asignacion?.vehiculo?.placa }} - {{ g.asignacion?.solicitud?.destino }}</td>
+          <td>{{ g.placa || '—' }}</td>
           <td>{{ g.tipo }}</td>
           <td>{{ g.proveedor }}</td>
-          <td>S/. {{ g.monto }}</td>
+          <td>S/. {{ g.monto | number:'1.2-2' }}</td>
           <td>{{ g.fecha | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <button
+              *ngIf="g.comprobante"
+              class="btn-descargar"
+              (click)="descargarComprobante((g as any).comprobanteBase64 || '', g.comprobante)"
+            >
+              ⬇️ Ver
+            </button>
+            <span *ngIf="!g.comprobante" style="color:#64748b; font-style:italic;">—</span>
+          </td>
           <td>
             <button (click)="editar(g)" class="btn-editar">✏️</button>
             <button (click)="eliminar(g.id)" class="btn-eliminar">🗑️</button>
@@ -106,10 +216,11 @@
       </tbody>
     </table>
 
-    <div class="paginacion">
-      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️</button>
+    <div class="paginacion" *ngIf="gastos.length > itemsPagina">
+      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️ Anterior</button>
       <span>Página {{ pagina }} de {{ totalPaginas }}</span>
-      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">➡️</button>
+      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">Siguiente ➡️</button>
     </div>
+
   </div>
 </div>
