@@ -29,13 +29,9 @@ export class GastosConductorComponent implements OnInit {
   gastoIntentado = false;
   errorGasto = '';
 
-  // ── Tipo personalizado ─────────────────────────────
+  // ── Tipo y proveedor personalizados ────────────────
   tipoPersonalizado = false;
   proveedorPersonalizado = false;
-
-  // ── Comprobante ────────────────────────────────────
-  archivoSeleccionado: File | null = null;
-  archivoBase64: string = '';
 
   // ── Fecha ──────────────────────────────────────────
   fechaInput: string = '';
@@ -83,35 +79,6 @@ export class GastosConductorComponent implements OnInit {
     }
   }
 
-  // ✅ Archivo comprobante
-  onFileChange(event: any) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    const tiposPermitidos = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'image/png',
-      'image/jpeg',
-      'image/jpg'
-    ];
-
-    if (tiposPermitidos.includes(file.type)) {
-      this.archivoSeleccionado = file;
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.archivoBase64 = reader.result as string;
-      };
-      reader.readAsDataURL(file);
-    } else {
-      alert('⚠️ Solo se permiten PDF, Word o imágenes (PNG, JPG).');
-      event.target.value = '';
-      this.archivoSeleccionado = null;
-      this.archivoBase64 = '';
-    }
-  }
-
   guardarGasto() {
     this.gastoIntentado = true;
     this.errorGasto = '';
@@ -120,22 +87,12 @@ export class GastosConductorComponent implements OnInit {
       !this.gasto.asignacion?.id ||
       !this.gasto.tipo?.trim() ||
       !this.gasto.proveedor?.trim() ||
+      !this.gasto.comprobante?.trim() ||
       !(this.gasto.monto > 0) ||
       !this.fechaInput
     ) {
       this.errorGasto = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
       return;
-    }
-
-    // Comprobante obligatorio solo al crear
-    if (!this.gasto.id && !this.archivoSeleccionado) {
-      this.errorGasto = '⚠️ Debes adjuntar un comprobante antes de guardar.';
-      return;
-    }
-
-    if (this.archivoSeleccionado) {
-      this.gasto.comprobante = this.archivoSeleccionado.name;
-      (this.gasto as any).comprobanteBase64 = this.archivoBase64;
     }
 
     this.gasto.fecha = new Date(this.fechaInput) as any;
@@ -175,8 +132,6 @@ export class GastosConductorComponent implements OnInit {
   limpiar() {
     this.gasto = new GastosConductor();
     this.fechaInput = '';
-    this.archivoSeleccionado = null;
-    this.archivoBase64 = '';
     this.tipoPersonalizado = false;
     this.proveedorPersonalizado = false;
     this.gastoIntentado = false;
@@ -192,13 +147,6 @@ export class GastosConductorComponent implements OnInit {
       g.placa?.toLowerCase().includes(term)
     );
     this.calcularTotal();
-  }
-
-  descargarComprobante(base64: string, nombre: string = 'comprobante') {
-    const link = document.createElement('a');
-    link.href = base64;
-    link.download = nombre;
-    link.click();
   }
 
   get totalPaginas(): number {
