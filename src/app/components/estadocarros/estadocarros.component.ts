@@ -187,15 +187,20 @@ export class EstadoCarrosComponent implements OnInit {
         .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
         .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
 
-      if (asignacionActiva) {
-        const fechaFin = new Date(asignacionActiva.fin);
-        fechaFin.setHours(0, 0, 0, 0);
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-if (hoy <= fechaFin) {
-  const finFormateada = fechaFin.toLocaleDateString('es-PE');
-  this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
-  return;
+     if (asignacionActiva) {
+  // ✅ Parsear fecha como string local para evitar desfase de timezone
+  const finStr = asignacionActiva.fin.toString().split('T')[0];
+  const [anio, mes, dia] = finStr.split('-').map(Number);
+  const fechaFin = new Date(anio, mes - 1, dia); // mes es 0-indexed
+
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+
+  if (hoy <= fechaFin) {
+    const finFormateada = fechaFin.toLocaleDateString('es-PE');
+    this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+    return;
+  }
 }
       }
     }
