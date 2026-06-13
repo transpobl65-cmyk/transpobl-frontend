@@ -73,30 +73,33 @@
       (input)="buscarVehiculo()"
       style="margin: 1rem 0;"
     />
+<table>
+  <thead>
+    <tr>
+      <th>Placa</th>
+      <th>Tipo</th>
+      <th>Marca</th>
+      <th>Modelo</th>
+      <th>Año</th>
+      <th *ngIf="role !== 'GERENTE'">Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let v of vehiculos | slice:(paginaVehiculo-1)*itemsVehiculo:(paginaVehiculo*itemsVehiculo)">
+      <td>{{ v.placa }}</td>
+      <td>{{ v.tipo || '—' }}</td>
+      <td>{{ v.marca || '—' }}</td>
+      <td>{{ v.modelo || '—' }}</td>
+      <td>{{ v.anio || '—' }}</td>
+      <td *ngIf="role !== 'GERENTE'">
+        <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
+        <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
+      </td>
+    </tr>
+  </tbody>
+</table>
+    
 
-    <table>
-      <thead>
-        <tr>
-          <th>Placa</th>
-          <th>Tipo</th>
-          <th>Marca</th>
-          <th>Modelo</th>
-          <th *ngIf="role !== 'GERENTE'">Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let v of vehiculos | slice:(paginaVehiculo-1)*itemsVehiculo:(paginaVehiculo*itemsVehiculo)">
-          <td>{{ v.placa }}</td>
-          <td>{{ v.tipo || '—' }}</td>
-          <td>{{ v.marca || '—' }}</td>
-          <td>{{ v.modelo || '—' }}</td>
-          <td *ngIf="role !== 'GERENTE'">
-            <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
-            <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
 
     <div class="paginacion">
       <button [disabled]="paginaVehiculo === 1" (click)="cambiarPaginaVehiculo(-1)">⬅️</button>

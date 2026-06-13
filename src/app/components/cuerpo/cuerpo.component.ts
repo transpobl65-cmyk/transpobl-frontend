@@ -12,31 +12,21 @@ import { Chart, registerables } from 'chart.js';
 import { A11yModule } from "@angular/cdk/a11y";
 Chart.register(...registerables);
 
-// 🎨 Estilo GLOBAL para que todas las leyendas se vean blancas, grandes y bold
 Chart.defaults.color = '#FFFFFF';
-
 Chart.defaults.plugins.legend.labels.color = '#FFFFFF';
-Chart.defaults.plugins.legend.labels.font = {
-  size: 14,
-  weight: 'bold'
-};
-
-// Tooltip también claro
+Chart.defaults.plugins.legend.labels.font = { size: 14, weight: 'bold' };
 Chart.defaults.plugins.tooltip.bodyColor = '#FFFFFF';
 Chart.defaults.plugins.tooltip.titleColor = '#FFFFFF';
 
 @Component({
   selector: 'app-cuerpo',
   standalone: true,
-  imports: [A11yModule,
-    CommonModule, FormsModule
-  ],
+  imports: [A11yModule, CommonModule, FormsModule],
   templateUrl: './cuerpo.component.html',
   styleUrl: './cuerpo.component.css'
 })
 export class CuerpoComponent implements AfterViewInit {
 
-  
   // 🎨 Paleta moderna
   colores = [
     '#4CAF50', '#FF9800', '#2196F3', '#E91E63', '#9C27B0',
@@ -48,22 +38,12 @@ export class CuerpoComponent implements AfterViewInit {
   }
 
   estiloEjeTexto = {
-    ticks: {
-      color: '#FFF',
-      font: { size: 13, weight: 'bold' as const }
-    }
+    ticks: { color: '#FFF', font: { size: 13, weight: 'bold' as const } }
   };
 
   estiloEjeNumeros = {
-    ticks: {
-      color: '#FFF',
-      font: { size: 13, weight: 'bold' as const }
-    }
+    ticks: { color: '#FFF', font: { size: 13, weight: 'bold' as const } }
   };
-
-  noHayDatos(arr: any[]) {
-    return !arr || arr.length === 0;
-  }
 
   // Mostrar u ocultar
   mostrarSolicitudes = false;
@@ -76,6 +56,7 @@ export class CuerpoComponent implements AfterViewInit {
 
   // Indicadores
   totalVehiculos = 0;
+  totalHistorialFlota = 0; // ← nuevo para controlar no-data del gráfico flota
   totalGastosEmpresaAnio = 0;
   totalGastosConductorAnio = 0;
   totalSolicitudes = 0;
@@ -121,66 +102,88 @@ export class CuerpoComponent implements AfterViewInit {
     if (grafico) grafico.destroy();
   }
 
-cargarIndicadores() {
-  const year = this.anioSeleccionado;
-  let ingresos = 0;
-  let gastosEmpresa = 0;
-  let gastosConductor = 0;
+  cargarIndicadores() {
+    const year = this.anioSeleccionado;
+    let ingresos = 0;
+    let gastosEmpresa = 0;
+    let gastosConductor = 0;
 
-  const calcularGanancia = () => {
-    const impuesto = ingresos * 0.015; // 1.5% RER Perú
-    this.gananciaTotal = ingresos - gastosEmpresa - gastosConductor - impuesto;
-  };
+    const calcularGanancia = () => {
+      const impuesto = ingresos * 0.015;
+      this.gananciaTotal = ingresos - gastosEmpresa - gastosConductor - impuesto;
+    };
 
-  this.vehiculosService.list().subscribe(data => {
-    this.totalVehiculos = data.length;
-  });
+    this.vehiculosService.list().subscribe(data => {
+      this.totalVehiculos = data.length;
+    });
 
-  this.solicitudesService.list().subscribe(data => {
-    const filtrado = data.filter(s =>
-      new Date(s.fechaSalida).getFullYear() === year
-    );
-    this.totalSolicitudes = filtrado.length;
-    this.totalClientes = new Set(filtrado.map(s => s.cliente?.id)).size;
-    ingresos = filtrado.reduce((acc, s) => acc + (s.precio || 0), 0);
-    calcularGanancia();
-  });
+    this.solicitudesService.list().subscribe(data => {
+      const filtrado = data.filter(s =>
+        new Date(s.fechaSalida).getFullYear() === year
+      );
+      this.totalSolicitudes = filtrado.length;
+      this.totalClientes = new Set(filtrado.map(s => s.cliente?.id)).size;
+      ingresos = filtrado.reduce((acc, s) => acc + (s.precio || 0), 0);
+      calcularGanancia();
+    });
 
-  this.coordinacionesService.list().subscribe(data => {
-    this.totalCoordinaciones = data
-      .filter(c => new Date(c.solicitud.fechaSalida).getFullYear() === year)
-      .length;
-  });
+    this.coordinacionesService.list().subscribe(data => {
+      this.totalCoordinaciones = data
+        .filter(c => new Date(c.solicitud.fechaSalida).getFullYear() === year)
+        .length;
+    });
 
-  this.gastosEmpresaService.list().subscribe(data => {
-    gastosEmpresa = data
-      .filter(g => new Date(g.fecha).getFullYear() === year)
-      .reduce((acc, g) => acc + g.monto, 0);
-    this.totalGastosEmpresaAnio = gastosEmpresa;
-    calcularGanancia();
-  });
+    this.gastosEmpresaService.list().subscribe(data => {
+      gastosEmpresa = data
+        .filter(g => new Date(g.fecha).getFullYear() === year)
+        .reduce((acc, g) => acc + g.monto, 0);
+      this.totalGastosEmpresaAnio = gastosEmpresa;
+      calcularGanancia();
+    });
 
-  this.gastosConductorService.list().subscribe(data => {
-    gastosConductor = data
-      .filter(g => new Date(g.fecha).getFullYear() === year)
-      .reduce((acc, g) => acc + g.monto, 0);
-    this.totalGastosConductorAnio = gastosConductor;
-    calcularGanancia();
-  });
-}
+    this.gastosConductorService.list().subscribe(data => {
+      gastosConductor = data
+        .filter(g => new Date(g.fecha).getFullYear() === year)
+        .reduce((acc, g) => acc + g.monto, 0);
+      this.totalGastosConductorAnio = gastosConductor;
+      calcularGanancia();
+    });
+  }
 
   // ==================== GRÁFICOS ====================
 
   loadFlotaChart() {
-    this.vehiculosService.list().subscribe(data => {
-      const counts: Record<string, number> = {};
-
-      data.forEach(v => {
-        const estado = v.estadoActual || 'Sin estado';
-        counts[estado] = (counts[estado] || 0) + 1;
-      });
-
+    // ✅ Ahora usa el historial para obtener el último estado de cada vehículo
+    this.historialService.list().subscribe(data => {
       this.destruir(this.graficoFlota);
+
+      if (!data || data.length === 0) {
+        this.totalHistorialFlota = 0;
+        return;
+      }
+
+      // Agrupar por vehículo y quedarse con el registro más reciente de cada uno
+      const ultimoEstadoPorVehiculo: Record<number, string> = {};
+
+      data
+        .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime())
+        .forEach(h => {
+          if (h.vehiculo?.id) {
+            ultimoEstadoPorVehiculo[h.vehiculo.id] = h.estado;
+          }
+        });
+
+      const estados = Object.values(ultimoEstadoPorVehiculo);
+      this.totalHistorialFlota = estados.length;
+
+      if (estados.length === 0) return;
+
+      // Contar cuántos vehículos hay en cada estado
+      const counts: Record<string, number> = {};
+      estados.forEach(estado => {
+        const key = estado || 'Sin estado';
+        counts[key] = (counts[key] || 0) + 1;
+      });
 
       this.graficoFlota = new Chart(this.chartFlota.nativeElement, {
         type: 'doughnut',
@@ -197,13 +200,11 @@ cargarIndicadores() {
 
   loadSolicitudesDestinoChart() {
     this.solicitudesService.list().subscribe(data => {
-
       const filtrado = data.filter(s =>
         new Date(s.fechaSalida).getFullYear() === this.anioSeleccionado
       );
 
       this.destruir(this.graficoSolicitudes);
-
       if (filtrado.length === 0) return;
 
       const counts: Record<string, number> = {};
@@ -229,13 +230,11 @@ cargarIndicadores() {
 
   loadGastosPorMes() {
     this.gastosEmpresaService.list().subscribe(data => {
-
       const filtrado = data.filter(g =>
         new Date(g.fecha).getFullYear() === this.anioSeleccionado
       );
 
       this.destruir(this.graficoGastosMes);
-
       if (filtrado.length === 0) return;
 
       const totals: Record<string, number> = {};
@@ -261,13 +260,11 @@ cargarIndicadores() {
 
   loadCoordinacionesChart() {
     this.coordinacionesService.list().subscribe(data => {
-
       const filtrado = data.filter(c =>
         new Date(c.solicitud.fechaSalida).getFullYear() === this.anioSeleccionado
       );
 
       this.destruir(this.graficoCoordinaciones);
-
       if (filtrado.length === 0) return;
 
       const counts: Record<string, number> = {};

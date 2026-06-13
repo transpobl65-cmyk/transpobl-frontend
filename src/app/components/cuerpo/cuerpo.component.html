@@ -62,17 +62,17 @@
       </div>
     </div>
 
-    <!-- Estado de la flota -->
-    <div class="chart-card big">
-      <div class="chart-title">Estado de la flota</div>
-      <div class="chart-inner">
-        <div class="no-data" *ngIf="totalVehiculos === 0">
-          <span>📭</span>
-          <p>Sin vehículos registrados</p>
-        </div>
-        <canvas #chartFlota *ngIf="totalVehiculos > 0"></canvas>
-      </div>
+<!-- Estado de la flota -->
+<div class="chart-card big">
+  <div class="chart-title">Estado de la flota</div>
+  <div class="chart-inner">
+    <div class="no-data" *ngIf="totalHistorialFlota === 0">
+      <span>📭</span>
+      <p>Sin registros de estado en historial</p>
     </div>
+    <canvas #chartFlota *ngIf="totalHistorialFlota > 0"></canvas>
+  </div>
+</div>
 
     <!-- Gastos de empresa por mes -->
     <div class="chart-card">
