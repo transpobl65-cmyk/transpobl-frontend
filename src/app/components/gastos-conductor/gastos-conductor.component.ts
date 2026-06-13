@@ -54,16 +54,18 @@ export class GastosConductorComponent implements OnInit {
     });
   }
 
-  cargarGastosConductor() {
-    this.gastosService.list().subscribe({
-      next: (g) => {
-        this.gastos = g;
-        this.calcularTotal();
-      },
-      error: (err) => console.error('❌ Error al listar gastos:', err)
-    });
-  }
-
+cargarGastosConductor() {
+  this.gastosService.list().subscribe({
+    next: (g) => {
+      // ✅ Filtrar solo los gastos del conductor logueado
+      this.gastos = g.filter(
+        gasto => gasto.conductor?.username === this.conductorUsername
+      );
+      this.calcularTotal();
+    },
+    error: (err) => console.error('❌ Error al listar gastos:', err)
+  });
+}
   calcularTotal() {
     this.totalGastos = this.gastos.reduce((sum, g) => sum + (Number(g.monto) || 0), 0);
   }

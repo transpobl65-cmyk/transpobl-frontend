@@ -1,6 +1,12 @@
 <div class="card">
   <div class="card-head">Registrar Gasto del Conductor</div>
 
+  <!-- ✅ Mensaje si no hay gastos -->
+  <div class="total-box" *ngIf="gastos.length === 0" style="color:#64748b; justify-content:center;">
+    📭 Aún no tienes gastos registrados, <strong style="color:#f59e0b; margin-left:4px;">{{ conductorUsername }}</strong>.
+  </div>
+
+  <!-- ✅ Total si hay gastos -->
   <div class="total-box" *ngIf="gastos.length > 0">
     💰 Total gastado por <strong>{{ conductorUsername }}</strong>:
     <span>S/. {{ totalGastos | number:'1.2-2' }}</span>
@@ -159,7 +165,8 @@
       style="margin: 1rem 0; width: 100%;"
     />
 
-    <table>
+    <!-- ✅ Tabla solo si hay gastos -->
+    <table *ngIf="gastos.length > 0">
       <thead>
         <tr>
           <th>Asignación</th>
@@ -189,10 +196,17 @@
       </tbody>
     </table>
 
-<div class="paginacion">
-  <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️ Anterior</button>
-  <span>Página {{ pagina }} de {{ totalPaginas }}</span>
-  <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">Siguiente ➡️</button>
-</div>
+    <!-- ✅ Sin gastos -->
+    <div *ngIf="gastos.length === 0" style="text-align:center; padding: 2rem; color:#64748b;">
+      <div style="font-size:2.5rem;">📋</div>
+      <p style="font-style:italic; margin-top:0.5rem;">No hay gastos registrados aún.</p>
+    </div>
+
+    <div class="paginacion" *ngIf="gastos.length > itemsPagina">
+      <button [disabled]="pagina === 1" (click)="cambiarPagina(-1)">⬅️ Anterior</button>
+      <span>Página {{ pagina }} de {{ totalPaginas }}</span>
+      <button [disabled]="pagina === totalPaginas" (click)="cambiarPagina(1)">Siguiente ➡️</button>
+    </div>
+
   </div>
 </div>
