@@ -192,12 +192,11 @@ export class EstadoCarrosComponent implements OnInit {
         fechaFin.setHours(0, 0, 0, 0);
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-
-        if (hoy <= fechaFin) {
-          const finFormateada = fechaFin.toLocaleDateString('es-PE');
-          this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}. Se recomienda esperar al menos 5 días adicionales para posibles reparos antes de una nueva asignación.`;
-          return;
-        }
+if (hoy <= fechaFin) {
+  const finFormateada = fechaFin.toLocaleDateString('es-PE');
+  this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+  return;
+}
       }
     }
 
@@ -255,110 +254,124 @@ export class EstadoCarrosComponent implements OnInit {
   // ASIGNACIONES
   // ══════════════════════════════════════════════════
 
-  guardarAsignacion() {
-    this.asignacionIntentado = true;
-    this.errorAsignacion = '';
+guardarAsignacion() {
+  this.asignacionIntentado = true;
+  this.errorAsignacion = '';
 
-    if (
-      !this.solicitudSeleccionadaId ||
-      !this.vehiculoAsignadoId ||
-      !this.conductorSeleccionadoId ||
-      !this.fechaInicioInput ||
-      !this.fechaFinInput
-    ) {
-      this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
-      return;
-    }
-
-    const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
-    const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
-    const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
-
-    if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
-      this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
-      return;
-    }
-
-    const nuevaInicio = new Date(this.fechaInicioInput).getTime();
-    const nuevaFin = new Date(this.fechaFinInput).getTime();
-
-    if (nuevaFin <= nuevaInicio) {
-      this.errorAsignacion = '⚠️ La fecha fin debe ser posterior a la fecha inicio.';
-      return;
-    }
-
-    const traslape = this.asignaciones.some(a => {
-      if (a.vehiculo?.id !== vehiculoSeleccionado.id) return false;
-      if (this.asignacion.id && a.id === this.asignacion.id) return false;
-      const aInicio = new Date(a.inicio).getTime();
-      const aFin = new Date(a.fin).getTime();
-      return nuevaInicio < aFin && nuevaFin > aInicio;
-    });
-
-    if (traslape) {
-      this.errorAsignacion = '⚠️ El vehículo ya tiene una asignación en ese rango de fechas.';
-      return;
-    }
-
-    this.asignacion.solicitud = solicitudSeleccionada;
-    this.asignacion.vehiculo = vehiculoSeleccionado;
-    this.asignacion.conductor = {
-      id: conductorSeleccionado.id,
-      username: conductorSeleccionado.username
-    };
-    this.asignacion.estado = 'ASIGNADO';
-    this.asignacion.inicio = new Date(this.fechaInicioInput);
-    this.asignacion.fin = new Date(this.fechaFinInput);
-
-    const accion$ = this.asignacion.id
-      ? this.asignacionesService.update(this.asignacion)
-      : this.asignacionesService.insert(this.asignacion);
-
-    accion$.subscribe({
-      next: () => {
-        if (!this.asignacion.id) {
-          const historialExistente = this.historiales.find(
-            h => h.vehiculo?.id === vehiculoSeleccionado.id
-          );
-
-          const finalizarGuardado = () => {
-            alert('✅ Asignación registrada');
-            this.limpiarAsignacion();
-            this.cargarTodo();
-          };
-
-          if (historialExistente) {
-            const historialActualizado = {
-              ...historialExistente,
-              estado: 'ASIGNADO',
-              fecha: new Date(this.fechaInicioInput)
-            };
-            this.historialService.update(historialActualizado).subscribe(() => {
-              finalizarGuardado();
-            });
-          } else {
-            const nuevoHistorial = {
-              vehiculo: { id: vehiculoSeleccionado.id },
-              estado: 'ASIGNADO',
-              fecha: new Date(this.fechaInicioInput)
-            };
-            this.historialService.insert(nuevoHistorial as any).subscribe(() => {
-              finalizarGuardado();
-            });
-          }
-        } else {
-          alert('✅ Asignación actualizada');
-          this.limpiarAsignacion();
-          this.cargarTodo();
-        }
-      },
-      error: (err) => {
-        console.error('❌ Error al registrar asignación:', err);
-        alert('Ocurrió un error al registrar la asignación.');
-      }
-    });
+  if (
+    !this.solicitudSeleccionadaId ||
+    !this.vehiculoAsignadoId ||
+    !this.conductorSeleccionadoId ||
+    !this.fechaInicioInput ||
+    !this.fechaFinInput
+  ) {
+    this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
   }
 
+  const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
+  const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
+  const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
+
+  if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
+    this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
+    return;
+  }
+
+  const nuevaInicio = new Date(this.fechaInicioInput).getTime();
+  const nuevaFin = new Date(this.fechaFinInput).getTime();
+
+  if (nuevaFin <= nuevaInicio) {
+    this.errorAsignacion = '⚠️ La fecha fin debe ser posterior a la fecha inicio.';
+    return;
+  }
+
+  // ✅ Validar traslape de vehículo
+  const traslape = this.asignaciones.some(a => {
+    if (a.vehiculo?.id !== vehiculoSeleccionado.id) return false;
+    if (this.asignacion.id && a.id === this.asignacion.id) return false;
+    const aInicio = new Date(a.inicio).getTime();
+    const aFin = new Date(a.fin).getTime();
+    return nuevaInicio < aFin && nuevaFin > aInicio;
+  });
+
+  if (traslape) {
+    this.errorAsignacion = '⚠️ El vehículo ya tiene una asignación en ese rango de fechas.';
+    return;
+  }
+
+  // ✅ Validar que el conductor no tenga otra asignación activa en el mismo periodo
+  const conductorOcupado = this.asignaciones.some(a => {
+    if (a.conductor?.id !== conductorSeleccionado.id) return false;
+    if (this.asignacion.id && a.id === this.asignacion.id) return false;
+    const aInicio = new Date(a.inicio).getTime();
+    const aFin = new Date(a.fin).getTime();
+    return nuevaInicio < aFin && nuevaFin > aInicio;
+  });
+
+  if (conductorOcupado) {
+    this.errorAsignacion = '⚠️ Este conductor ya tiene una asignación activa en ese periodo. Solo puede ser asignado cuando finalice su servicio anterior.';
+    return;
+  }
+
+  this.asignacion.solicitud = solicitudSeleccionada;
+  this.asignacion.vehiculo = vehiculoSeleccionado;
+  this.asignacion.conductor = {
+    id: conductorSeleccionado.id,
+    username: conductorSeleccionado.username
+  };
+  this.asignacion.estado = 'ASIGNADO';
+  this.asignacion.inicio = new Date(this.fechaInicioInput);
+  this.asignacion.fin = new Date(this.fechaFinInput);
+
+  const accion$ = this.asignacion.id
+    ? this.asignacionesService.update(this.asignacion)
+    : this.asignacionesService.insert(this.asignacion);
+
+  accion$.subscribe({
+    next: () => {
+      if (!this.asignacion.id) {
+        const historialExistente = this.historiales.find(
+          h => h.vehiculo?.id === vehiculoSeleccionado.id
+        );
+
+        const finalizarGuardado = () => {
+          alert('✅ Asignación registrada');
+          this.limpiarAsignacion();
+          this.cargarTodo();
+        };
+
+        if (historialExistente) {
+          const historialActualizado = {
+            ...historialExistente,
+            estado: 'ASIGNADO',
+            fecha: new Date(this.fechaInicioInput)
+          };
+          this.historialService.update(historialActualizado).subscribe(() => {
+            finalizarGuardado();
+          });
+        } else {
+          const nuevoHistorial = {
+            vehiculo: { id: vehiculoSeleccionado.id },
+            estado: 'ASIGNADO',
+            fecha: new Date(this.fechaInicioInput)
+          };
+          this.historialService.insert(nuevoHistorial as any).subscribe(() => {
+            finalizarGuardado();
+          });
+        }
+      } else {
+        alert('✅ Asignación actualizada');
+        this.limpiarAsignacion();
+        this.cargarTodo();
+      }
+    },
+    error: (err) => {
+      console.error('❌ Error al registrar asignación:', err);
+      alert('Ocurrió un error al registrar la asignación.');
+    }
+  });
+}
   getEstadoVehiculo(vehiculoId: number): string {
     const historialVehiculo = this.historiales
       .filter(h => h.vehiculo?.id === vehiculoId)

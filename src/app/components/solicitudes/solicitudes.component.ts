@@ -155,13 +155,14 @@ guardarSolicitud() {
     return;
   }
 
-  // ✅ Validar que el vehículo no esté ya en otra solicitud activa (solo al crear)
+  // ✅ Bloquear solo si mismo vehículo Y misma fecha
   if (!this.solicitud.id) {
-    const vehiculoEnSolicitud = this.solicitudes.some(
-      s => s.vehiculo?.id === this.solicitud.vehiculo.id
+    const duplicado = this.solicitudes.some(s =>
+      s.vehiculo?.id === this.solicitud.vehiculo.id &&
+      new Date(s.fechaSalida).toDateString() === new Date(this.fechaSalidaInput).toDateString()
     );
-    if (vehiculoEnSolicitud) {
-      this.errorSolicitud = '⚠️ El vehículo seleccionado ya fue registrado en una solicitud previa. Selecciona otro vehículo.';
+    if (duplicado) {
+      this.errorSolicitud = '⚠️ Ya existe una solicitud con este vehículo en la misma fecha. Cambia la fecha o selecciona otro vehículo.';
       return;
     }
   }
@@ -199,7 +200,6 @@ guardarSolicitud() {
 
   accion$.subscribe({
     next: () => {
-      // ✅ Actualizar historial del vehículo a ASIGNADO solo al crear
       if (!this.solicitud.id) {
         const historialExistente = this.historiales.find(
           h => h.vehiculo?.id === this.solicitud.vehiculo.id
@@ -250,6 +250,9 @@ guardarSolicitud() {
     }
   });
 }
+
+
+
 editarSolicitud(s: Solicitud) {
   this.solicitud = JSON.parse(JSON.stringify(s));
   this.fechaSalidaInput = new Date(s.fechaSalida).toISOString().split('T')[0];
