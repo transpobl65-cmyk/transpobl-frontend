@@ -193,3 +193,4 @@ tr:hover { background-color: #1f2937; }
   opacity: 0.5;
   cursor: not-allowed;
 }
+.badge-gray { background: #374151; color: #9ca3af; }

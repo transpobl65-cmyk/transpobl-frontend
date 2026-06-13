@@ -293,17 +293,59 @@ guardarAsignacion() {
     ? this.asignacionesService.update(this.asignacion)
     : this.asignacionesService.insert(this.asignacion);
 
-  accion$.subscribe({
-    next: () => {
-      alert(this.asignacion.id ? '✅ Asignación actualizada' : '✅ Asignación registrada');
+accion$.subscribe({
+  next: () => {
+    // ✅ Actualizar historial a ASIGNADO al crear asignación
+    if (!this.asignacion.id) {
+      const historialExistente = this.historiales.find(
+        h => h.vehiculo?.id === vehiculoSeleccionado.id
+      );
+
+      const finalizarGuardado = () => {
+        alert('✅ Asignación registrada');
+        this.limpiarAsignacion();
+        this.cargarTodo();
+      };
+
+      if (historialExistente) {
+        const historialActualizado = {
+          ...historialExistente,
+          estado: 'ASIGNADO',
+          fecha: new Date(this.fechaInicioInput),
+          notas: 'Asignado automáticamente al registrar asignación'
+        };
+        this.historialService.update(historialActualizado).subscribe(() => {
+          finalizarGuardado();
+        });
+      } else {
+        const nuevoHistorial = {
+          vehiculo: { id: vehiculoSeleccionado.id },
+          estado: 'ASIGNADO',
+          fecha: new Date(this.fechaInicioInput),
+          notas: 'Asignado automáticamente al registrar asignación'
+        };
+        this.historialService.insert(nuevoHistorial as any).subscribe(() => {
+          finalizarGuardado();
+        });
+      }
+    } else {
+      alert('✅ Asignación actualizada');
       this.limpiarAsignacion();
       this.cargarTodo();
-    },
-    error: (err) => {
-      console.error('❌ Error al registrar asignación:', err);
-      alert('Ocurrió un error al registrar la asignación.');
     }
-  });
+  },
+  error: (err) => {
+    console.error('❌ Error al registrar asignación:', err);
+    alert('Ocurrió un error al registrar la asignación.');
+  }
+});
+}
+
+getEstadoVehiculo(vehiculoId: number): string {
+  const historialVehiculo = this.historiales
+    .filter(h => h.vehiculo?.id === vehiculoId)
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+  return historialVehiculo[0]?.estado || 'Sin estado';
 }
 
 onSolicitudSeleccionada() {

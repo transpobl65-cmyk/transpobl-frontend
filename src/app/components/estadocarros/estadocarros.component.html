@@ -88,6 +88,7 @@
           <th>Marca</th>
           <th>Modelo</th>
           <th>Año</th>
+          <th>Estado</th>
           <th *ngIf="role !== 'GERENTE'">Acciones</th>
         </tr>
       </thead>
@@ -98,6 +99,16 @@
           <td>{{ v.marca || '—' }}</td>
           <td>{{ v.modelo || '—' }}</td>
           <td>{{ v.anio || '—' }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'badge-green':  getEstadoVehiculo(v.id) === 'ACTIVO',
+              'badge-orange': getEstadoVehiculo(v.id) === 'MANTENIMIENTO',
+              'badge-blue':   getEstadoVehiculo(v.id) === 'ASIGNADO',
+              'badge-purple': getEstadoVehiculo(v.id) === 'EN OPERACION',
+              'badge-red':    getEstadoVehiculo(v.id) === 'NO DISPONIBLE',
+              'badge-gray':   getEstadoVehiculo(v.id) === 'Sin estado'
+            }">{{ getEstadoVehiculo(v.id) }}</span>
+          </td>
           <td *ngIf="role !== 'GERENTE'">
             <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
             <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
@@ -115,11 +126,11 @@
 </div>
 
 <!-- 🧾 SECCIÓN DE HISTORIAL -->
-<div class="card">
+<div class="card" *ngIf="role !== 'GERENTE'">
   <div class="card-head">Historial de Vehículos</div>
   <div class="card-body">
 
-    <form (ngSubmit)="guardarHistorial()" *ngIf="role !== 'GERENTE'">
+    <form (ngSubmit)="guardarHistorial()">
       <div class="form-grid">
 
         <div class="form-group">
@@ -196,7 +207,7 @@
           <th>Estado</th>
           <th>Fecha</th>
           <th>Notas</th>
-          <th *ngIf="role !== 'GERENTE'">Acciones</th>
+          <th>Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -213,7 +224,7 @@
           </td>
           <td>{{ h.fecha | date: 'dd/MM/yyyy' }}</td>
           <td>{{ h.notas || '—' }}</td>
-          <td *ngIf="role !== 'GERENTE'">
+          <td>
             <button (click)="editarHistorial(h)" class="btn-editar">✏️</button>
             <button (click)="eliminarHistorial(h.id)" class="btn-eliminar">🗑️</button>
           </td>
