@@ -168,7 +168,7 @@ guardarHistorial() {
     this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
   }
 
-  // ✅ Validar que no exista ya un historial para ese vehículo (solo al crear)
+  // ✅ Validar duplicado solo al crear
   if (!this.historial.id) {
     const yaExiste = this.historiales.some(
       h => h.vehiculo?.id === Number(this.historial.vehiculo.id)
@@ -176,6 +176,24 @@ guardarHistorial() {
     if (yaExiste) {
       this.errorHistorial = '⚠️ Este vehículo ya tiene un estado registrado. Usa el botón ✏️ para editarlo.';
       return;
+    }
+  }
+
+  // ✅ Al editar, verificar si la asignación activa ya terminó
+  if (this.historial.id) {
+    const asignacionActiva = this.asignaciones
+      .filter(a => a.vehiculo?.id === Number(this.historial.vehiculo.id))
+      .sort((a, b) => new Date(b.fin).getTime() - new Date(a.fin).getTime())[0];
+
+    if (asignacionActiva) {
+      const fechaFin = new Date(asignacionActiva.fin).getTime();
+      const hoy = new Date().getTime();
+
+      if (hoy < fechaFin) {
+        const finFormateada = new Date(asignacionActiva.fin).toLocaleDateString('es-PE');
+        this.errorHistorial = `⚠️ No puedes cambiar el estado aún. La asignación activa termina el ${finFormateada}.`;
+        return;
+      }
     }
   }
 
