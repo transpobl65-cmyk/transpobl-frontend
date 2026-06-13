@@ -88,7 +88,6 @@
           <th>Marca</th>
           <th>Modelo</th>
           <th>Año</th>
-          <th>Estado</th>
           <th *ngIf="role !== 'GERENTE'">Acciones</th>
         </tr>
       </thead>
@@ -99,16 +98,6 @@
           <td>{{ v.marca || '—' }}</td>
           <td>{{ v.modelo || '—' }}</td>
           <td>{{ v.anio || '—' }}</td>
-          <td>
-            <span class="badge" [ngClass]="{
-              'badge-green':  getEstadoVehiculo(v.id) === 'ACTIVO',
-              'badge-orange': getEstadoVehiculo(v.id) === 'MANTENIMIENTO',
-              'badge-blue':   getEstadoVehiculo(v.id) === 'ASIGNADO',
-              'badge-purple': getEstadoVehiculo(v.id) === 'EN OPERACION',
-              'badge-red':    getEstadoVehiculo(v.id) === 'NO DISPONIBLE',
-              'badge-gray':   getEstadoVehiculo(v.id) === 'Sin estado'
-            }">{{ getEstadoVehiculo(v.id) }}</span>
-          </td>
           <td *ngIf="role !== 'GERENTE'">
             <button (click)="editarVehiculo(v)" class="btn-editar">✏️</button>
             <button (click)="eliminarVehiculo(v.id)" class="btn-eliminar">🗑️</button>
@@ -336,7 +325,6 @@
         <tr>
           <th>Vehículo</th>
           <th>Conductor</th>
-          <th>Estado</th>
           <th>Inicio</th>
           <th>Fin</th>
           <th *ngIf="role !== 'GERENTE'">Acciones</th>
@@ -346,7 +334,6 @@
         <tr *ngFor="let a of asignaciones | slice:(paginaAsignacion-1)*itemsAsignacion:(paginaAsignacion*itemsAsignacion)">
           <td>{{ a.vehiculo?.placa }}</td>
           <td>{{ a.conductor?.username }}</td>
-          <td>{{ a.estado }}</td>
           <td>{{ a.inicio | date: 'dd/MM/yyyy' }}</td>
           <td>{{ a.fin | date: 'dd/MM/yyyy' }}</td>
           <td *ngIf="role !== 'GERENTE'">
