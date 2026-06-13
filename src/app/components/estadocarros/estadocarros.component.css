@@ -152,7 +152,6 @@ th { color: #f59e0b; }
 
 tr:hover { background-color: #1f2937; }
 
-/* Badges de estado */
 .badge {
   display: inline-block;
   padding: 0.2rem 0.6rem;

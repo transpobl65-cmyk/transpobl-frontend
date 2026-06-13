@@ -74,9 +74,7 @@
 
       </div>
 
-      <p class="error-msg" *ngIf="vehiculoIntentado && (!vehiculo.placa || !vehiculo.tipo || !vehiculo.estadoActual)">
-        ⚠️ Por favor, completa los campos obligatorios antes de guardar.
-      </p>
+      <p class="error-msg" *ngIf="errorVehiculo">{{ errorVehiculo }}</p>
 
       <div class="button-group">
         <button type="submit" class="btn-guardar">Guardar</button>
@@ -187,9 +185,7 @@
 
       </div>
 
-      <p class="error-msg" *ngIf="historialIntentado && (!historial.vehiculo.id || !historial.estado || !historial.fecha)">
-        ⚠️ Por favor, completa los campos obligatorios antes de guardar.
-      </p>
+      <p class="error-msg" *ngIf="errorHistorial">{{ errorHistorial }}</p>
 
       <div class="button-group">
         <button type="submit" class="btn-guardar">Guardar</button>
@@ -319,9 +315,7 @@
 
       </div>
 
-      <p class="error-msg" *ngIf="asignacionIntentado && (!solicitudSeleccionadaId || !vehiculoAsignadoId || !conductorSeleccionadoId || !asignacion.estado || !asignacion.inicio || !asignacion.fin)">
-        ⚠️ Por favor, completa los campos obligatorios antes de guardar.
-      </p>
+      <p class="error-msg" *ngIf="errorAsignacion">{{ errorAsignacion }}</p>
 
       <div class="button-group">
         <button type="submit" class="btn-guardar">Guardar</button>

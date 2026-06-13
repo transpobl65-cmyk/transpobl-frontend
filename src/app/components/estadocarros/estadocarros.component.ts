@@ -28,6 +28,7 @@ export class EstadoCarrosComponent implements OnInit {
   itemsVehiculo = 3;
   vehiculoIntentado = false;
   tipoPersonalizado = false;
+  errorVehiculo = '';
 
   // ── Historial ──────────────────────────────────────
   historiales: HistorialEstadoVehiculo[] = [];
@@ -37,6 +38,7 @@ export class EstadoCarrosComponent implements OnInit {
   paginaHistorial = 1;
   itemsHistorial = 3;
   historialIntentado = false;
+  errorHistorial = '';
 
   // ── Asignaciones ───────────────────────────────────
   asignaciones: Asignacion[] = [];
@@ -50,6 +52,7 @@ export class EstadoCarrosComponent implements OnInit {
   paginaAsignacion = 1;
   itemsAsignacion = 3;
   asignacionIntentado = false;
+  errorAsignacion = '';
 
   // ── Auth ───────────────────────────────────────────
   role: string | null = null;
@@ -72,7 +75,6 @@ export class EstadoCarrosComponent implements OnInit {
     this.historialService.list().subscribe(h => (this.historiales = h));
     this.asignacionesService.list().subscribe(a => (this.asignaciones = a));
     this.solicitudesService.list().subscribe(s => (this.solicitudes = s));
-
     this.asignacionesService.getConductores().subscribe(users => {
       this.conductores = users.filter((u: any) =>
         u.roles?.some((r: any) => r.rol?.toUpperCase() === 'CONDUCTOR')
@@ -86,7 +88,24 @@ export class EstadoCarrosComponent implements OnInit {
 
   guardarVehiculo() {
     this.vehiculoIntentado = true;
-    if (!this.vehiculo.placa || !this.vehiculo.tipo || !this.vehiculo.estadoActual) return;
+    this.errorVehiculo = '';
+
+    // ✅ Validar campos obligatorios
+    if (!this.vehiculo.placa?.trim() || !this.vehiculo.tipo?.trim() || !this.vehiculo.estadoActual?.trim()) {
+      this.errorVehiculo = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+      return;
+    }
+
+    // ✅ Validar placa duplicada (solo al crear, no al editar)
+    if (!this.vehiculo.id) {
+      const placaExiste = this.vehiculos.some(
+        v => v.placa.trim().toLowerCase() === this.vehiculo.placa.trim().toLowerCase()
+      );
+      if (placaExiste) {
+        this.errorVehiculo = '⚠️ Ya existe un vehículo con esa placa. Verifica e intenta de nuevo.';
+        return;
+      }
+    }
 
     const accion$ = this.vehiculo.id
       ? this.vehiculosService.update(this.vehiculo)
@@ -103,6 +122,8 @@ export class EstadoCarrosComponent implements OnInit {
     this.vehiculo = JSON.parse(JSON.stringify(v));
     const listaFija = ['Volquete', 'Excavadora', 'Cargador Frontal', 'Camión Plataforma', 'Grúa'];
     this.tipoPersonalizado = !!v.tipo && !listaFija.includes(v.tipo);
+    this.vehiculoIntentado = false;
+    this.errorVehiculo = '';
   }
 
   eliminarVehiculo(id: number) {
@@ -125,6 +146,7 @@ export class EstadoCarrosComponent implements OnInit {
     this.vehiculo = new Vehiculo();
     this.tipoPersonalizado = false;
     this.vehiculoIntentado = false;
+    this.errorVehiculo = '';
   }
 
   // ══════════════════════════════════════════════════
@@ -133,7 +155,22 @@ export class EstadoCarrosComponent implements OnInit {
 
   guardarHistorial() {
     this.historialIntentado = true;
-    if (!this.historial.vehiculo?.id || !this.historial.estado || !this.historial.fecha) return;
+    this.errorHistorial = '';
+
+    // ✅ Validar campos obligatorios
+    if (!this.historial.vehiculo?.id || !this.historial.estado?.trim() || !this.historial.fecha) {
+      this.errorHistorial = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+      return;
+    }
+
+    // ✅ Validar que el vehículo no esté en Mantenimiento
+    const vehiculoElegido = this.vehiculos.find(
+      v => v.id === Number(this.historial.vehiculo.id)
+    );
+    if (vehiculoElegido?.estadoActual === 'MANTENIMIENTO') {
+      this.errorHistorial = '⚠️ No se puede registrar historial: el vehículo está en Mantenimiento.';
+      return;
+    }
 
     if (typeof this.historial.vehiculo.id === 'string') {
       this.historial.vehiculo.id = Number(this.historial.vehiculo.id);
@@ -158,6 +195,8 @@ export class EstadoCarrosComponent implements OnInit {
 
   editarHistorial(h: HistorialEstadoVehiculo) {
     this.historial = JSON.parse(JSON.stringify(h));
+    this.historialIntentado = false;
+    this.errorHistorial = '';
   }
 
   eliminarHistorial(id: number) {
@@ -179,6 +218,7 @@ export class EstadoCarrosComponent implements OnInit {
     this.historial = new HistorialEstadoVehiculo();
     this.vehiculoSeleccionadoId = 0;
     this.historialIntentado = false;
+    this.errorHistorial = '';
   }
 
   // ══════════════════════════════════════════════════
@@ -187,21 +227,34 @@ export class EstadoCarrosComponent implements OnInit {
 
   guardarAsignacion() {
     this.asignacionIntentado = true;
+    this.errorAsignacion = '';
+
+    // ✅ Validar campos obligatorios
     if (
       !this.solicitudSeleccionadaId ||
       !this.vehiculoAsignadoId ||
       !this.conductorSeleccionadoId ||
-      !this.asignacion.estado ||
+      !this.asignacion.estado?.trim() ||
       !this.asignacion.inicio ||
       !this.asignacion.fin
-    ) return;
+    ) {
+      this.errorAsignacion = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+      return;
+    }
 
     const solicitudSeleccionada = this.solicitudes.find(s => s.id === Number(this.solicitudSeleccionadaId));
     const vehiculoSeleccionado = this.vehiculos.find(v => v.id === Number(this.vehiculoAsignadoId));
     const conductorSeleccionado = this.conductores.find(c => c.id === Number(this.conductorSeleccionadoId));
 
     if (!solicitudSeleccionada || !vehiculoSeleccionado || !conductorSeleccionado) {
-      alert('❌ No se pudo encontrar uno de los elementos seleccionados.');
+      this.errorAsignacion = '❌ No se pudo encontrar uno de los elementos seleccionados.';
+      return;
+    }
+
+    // ✅ Validar que el vehículo esté ACTIVO
+    const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
+    if (estadosNoPermitidos.includes(vehiculoSeleccionado.estadoActual?.toUpperCase())) {
+      this.errorAsignacion = `⚠️ El vehículo seleccionado está en estado "${vehiculoSeleccionado.estadoActual}" y no está disponible. Solo se pueden asignar vehículos en estado ACTIVO.`;
       return;
     }
 
@@ -233,6 +286,8 @@ export class EstadoCarrosComponent implements OnInit {
 
   editarAsignacion(a: Asignacion) {
     this.asignacion = JSON.parse(JSON.stringify(a));
+    this.asignacionIntentado = false;
+    this.errorAsignacion = '';
   }
 
   eliminarAsignacion(id: number) {
@@ -256,6 +311,7 @@ export class EstadoCarrosComponent implements OnInit {
     this.vehiculoAsignadoId = 0;
     this.conductorSeleccionadoId = 0;
     this.asignacionIntentado = false;
+    this.errorAsignacion = '';
   }
 
   // ══════════════════════════════════════════════════
