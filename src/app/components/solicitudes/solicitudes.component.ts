@@ -8,6 +8,8 @@ import { SolicitudesService } from '../../services/solicitudes.service';
 import { LoginService } from '../../services/login.service';
 import { VehiculosService } from '../../services/vehiculos.service';
 import { Vehiculo } from '../../models/Vehiculos';
+import { HistorialestadovehiculoService } from '../../services/historialestadovehiculo.service';
+import { HistorialEstadoVehiculo } from '../../models/HistorialEstadoVehiculo';
 
 @Component({
   selector: 'app-solicitudes',
@@ -28,7 +30,7 @@ export class SolicitudesComponent implements OnInit {
   clienteBuscado = '';
   paginaCliente = 1;
   itemsCliente = 3;
-
+historiales: HistorialEstadoVehiculo[] = [];
   // 🚚 SOLICITUDES
   solicitudes: Solicitud[] = [];
   solicitudesFiltradas: Solicitud[] = [];
@@ -43,13 +45,20 @@ export class SolicitudesComponent implements OnInit {
   paginaActual = 1;
   itemsPorPagina = 3;
 
-  constructor(
-    private clientesService: ClientesService,
-    private solicitudesService: SolicitudesService,
-    private vehiculosService: VehiculosService,
-    private loginService: LoginService
-  ) {}
+// agrega estas variables
+clienteIntentado = false;
+solicitudIntentada = false;
+fechaSalidaInput: string = '';
+errorCliente = '';
+errorSolicitud = '';
 
+constructor(
+  private clientesService: ClientesService,
+  private solicitudesService: SolicitudesService,
+  private vehiculosService: VehiculosService,
+  private historialService: HistorialestadovehiculoService, // ← agrega
+  private loginService: LoginService
+) {}
   ngOnInit(): void {
       this.role = this.loginService.showRole();
     this.cargarDatos();
@@ -73,25 +82,36 @@ export class SolicitudesComponent implements OnInit {
       this.solicitudesFiltradas = [...this.solicitudes];
       this.paginaActual = 1;
     });
+    this.historialService.list().subscribe(h => {
+  this.historiales = h || [];
+});
+
+
+
   }
 
   // 🧍 CRUD CLIENTES
-  guardarCliente() {
-    if (!this.cliente.nombre || !this.cliente.rucDni) {
-      alert('⚠️ Complete los campos del cliente.');
-      return;
-    }
+guardarCliente() {
+  this.clienteIntentado = true;
+  this.errorCliente = '';
 
-    const accion$ = this.cliente.id
-      ? this.clientesService.update(this.cliente)
-      : this.clientesService.insert(this.cliente);
-
-    accion$.subscribe(() => {
-      alert(this.cliente.id ? '✅ Cliente actualizado correctamente.' : '✅ Cliente registrado correctamente.');
-      this.cliente = new Cliente();
-      this.cargarDatos();
-    });
+  if (!this.cliente.nombre?.trim() || !this.cliente.telefono?.trim()) {
+    this.errorCliente = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
   }
+
+  const accion$ = this.cliente.id
+    ? this.clientesService.update(this.cliente)
+    : this.clientesService.insert(this.cliente);
+
+  accion$.subscribe(() => {
+    alert(this.cliente.id ? '✅ Cliente actualizado correctamente.' : '✅ Cliente registrado correctamente.');
+    this.cliente = new Cliente();
+    this.clienteIntentado = false;
+    this.errorCliente = '';
+    this.cargarDatos();
+  });
+}
 
   editarCliente(c: Cliente) {
     this.cliente = JSON.parse(JSON.stringify(c));
@@ -104,54 +124,72 @@ export class SolicitudesComponent implements OnInit {
     }
   }
 
-  cancelarCliente() {
-    this.cliente = new Cliente();
-  }
-
+cancelarCliente() {
+  this.cliente = new Cliente();
+  this.clienteIntentado = false;
+  this.errorCliente = '';
+}
   // 🚚 CRUD SOLICITUDES
-  guardarSolicitud() {
-    if (
-      !this.solicitud.cliente ||
-      !this.solicitud.cliente.id ||
-      !this.solicitud.vehiculo ||
-      !this.solicitud.vehiculo.id ||
-      !this.solicitud.destino ||
-      !this.solicitud.fechaSalida
-    ) {
-      alert('⚠️ Complete los campos de la solicitud.');
-      return;
+guardarSolicitud() {
+  this.solicitudIntentada = true;
+  this.errorSolicitud = '';
+
+  if (
+    !this.solicitud.cliente?.id ||
+    !this.solicitud.vehiculo?.id ||
+    !this.solicitud.destino?.trim() ||
+    !(this.solicitud.precio > 0) ||
+    !this.fechaSalidaInput
+  ) {
+    this.errorSolicitud = '⚠️ Por favor, completa los campos obligatorios antes de guardar.';
+    return;
+  }
+
+  // ✅ Validar estado del vehículo desde historial
+  const historialVehiculo = this.historiales
+    .filter(h => h.vehiculo?.id === this.solicitud.vehiculo.id)
+    .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+  const ultimoEstado = historialVehiculo[0]?.estado?.toUpperCase();
+  const estadosNoPermitidos = ['MANTENIMIENTO', 'ASIGNADO', 'NO DISPONIBLE', 'EN OPERACION'];
+
+  if (ultimoEstado && estadosNoPermitidos.includes(ultimoEstado)) {
+    this.errorSolicitud = `⚠️ El vehículo está en estado "${historialVehiculo[0].estado}" y no está disponible para una nueva solicitud.`;
+    return;
+  }
+
+  this.solicitud.fechaSalida = new Date(this.fechaSalidaInput) as any;
+  this.solicitud.usuario.username = this.loginService.showUsername();
+
+  const accion$ = this.solicitud.id
+    ? this.solicitudesService.update(this.solicitud)
+    : this.solicitudesService.insert(this.solicitud);
+
+  accion$.subscribe({
+    next: () => {
+      alert(this.solicitud.id ? '✅ Solicitud actualizada.' : '✅ Solicitud registrada.');
+      this.solicitud = new Solicitud();
+      this.fechaSalidaInput = '';
+      this.solicitudIntentada = false;
+      this.errorSolicitud = '';
+      this.cargarDatos();
+    },
+    error: (err) => {
+      console.error('❌ Error al guardar solicitud:', err);
+      alert('Ocurrió un error al guardar la solicitud.');
     }
+  });
+}
 
-    // usuario autenticado
-    this.solicitud.usuario.username = this.loginService.showUsername();
 
-    console.log('📦 Enviando solicitud:', this.solicitud);
 
-    const accion$ = this.solicitud.id
-      ? this.solicitudesService.update(this.solicitud)
-      : this.solicitudesService.insert(this.solicitud);
-
-    accion$.subscribe({
-      next: () => {
-        alert(
-          this.solicitud.id
-            ? '✅ Solicitud actualizada correctamente.'
-            : '✅ Solicitud registrada correctamente.'
-        );
-        this.solicitud = new Solicitud();
-        this.cargarDatos();
-      },
-      error: (err) => {
-        console.error('❌ Error al guardar solicitud:', err);
-        alert('Ocurrió un error al guardar la solicitud (revisa la consola).');
-      }
-    });
-  }
-
-  editarSolicitud(s: Solicitud) {
-    this.solicitud = JSON.parse(JSON.stringify(s));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+editarSolicitud(s: Solicitud) {
+  this.solicitud = JSON.parse(JSON.stringify(s));
+  this.fechaSalidaInput = new Date(s.fechaSalida).toISOString().split('T')[0];
+  this.solicitudIntentada = false;
+  this.errorSolicitud = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
   eliminarSolicitud(id: number) {
     if (confirm('¿Eliminar esta solicitud?')) {
@@ -159,10 +197,12 @@ export class SolicitudesComponent implements OnInit {
     }
   }
 
-  cancelarSolicitud() {
-    this.solicitud = new Solicitud();
-  }
-
+cancelarSolicitud() {
+  this.solicitud = new Solicitud();
+  this.fechaSalidaInput = '';
+  this.solicitudIntentada = false;
+  this.errorSolicitud = '';
+}
   // 🔍 BÚSQUEDA SOLICITUDES (se trabaja sobre solicitudesFiltradas)
   buscar() {
     const term = (this.searchTerm || '').toLowerCase().trim();
