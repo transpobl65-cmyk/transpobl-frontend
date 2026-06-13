@@ -70,7 +70,8 @@
       <span>📭</span>
       <p>Sin registros de estado en historial</p>
     </div>
-    <canvas #chartFlota *ngIf="totalHistorialFlota > 0"></canvas>
+    <!-- ✅ hidden en vez de *ngIf para que el ViewChild siempre exista en el DOM -->
+    <canvas #chartFlota [hidden]="totalHistorialFlota === 0"></canvas>
   </div>
 </div>
 

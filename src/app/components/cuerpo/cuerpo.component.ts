@@ -51,8 +51,9 @@ export class CuerpoComponent implements AfterViewInit {
   mostrarCoordinaciones = false;
 
   // Selección de años
-  aniosDisponibles = [2024, 2025, 2026, 2027];
-  anioSeleccionado = 2025;
+// Cambiar estas dos líneas
+aniosDisponibles = [2024, 2025, 2026, 2027];
+anioSeleccionado = new Date().getFullYear(); // ← año actual automático
 
   // Indicadores
   totalVehiculos = 0;
